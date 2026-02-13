@@ -1,0 +1,19 @@
+# --- DATASET ---
+*.csv
+
+# --- PYTHON ---
+__pycache__/
+*.py[cod]
+
+# --- RASA (File pesanti generati automaticamente) ---
+models/
+.rasa/
+results/
+
+# --- AMBIENTE VIRTUALE ---
+venv/
+env/
+.env
+
+# --- SISTEMA ---
+.DS_Store
