@@ -11,7 +11,18 @@ intents:
 
 responses:
   utter_greet:
-  - text: "Hello! I'm PeppeBot, GreenMarket's virtual assistant. How can I help you?"
+  - text: "Hello! 👨‍🍳 I'm PeppeBot, GreenMarket's virtual assistant. How can I help you?"
+  - text: "Hi there! Welcome to GreenMarket. Ready to cook something delicious?"
+  - text: "Greetings! PeppeBot at your service. What ingredients do you have today?"
+
+  utter_goodbye:
+  - text: "Bye! 👋 Happy cooking with your GreenMarket ingredients!"
+  - text: "Goodbye! Let me know if the recipe turns out delicious! 🥘"
+  - text: "See you soon! Come back when your fridge is empty again!"
+  - text: "Bye! Enjoy your meal! 😋"
+
+  # utter_greet:
+  # - text: "Hello! I'm PeppeBot, GreenMarket's virtual assistant. How can I help you?"
 
   utter_cheer_up:
   - text: "Here is something to cheer you up:"
@@ -22,9 +33,6 @@ responses:
 
   utter_happy:
   - text: "Great, carry on!"
-
-  utter_goodbye:
-  - text: "Bye"
 
   utter_iamabot:
   - text: "I am a bot, powered by Rasa."
