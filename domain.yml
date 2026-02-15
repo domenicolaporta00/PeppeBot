@@ -6,6 +6,10 @@ intents:
   - help
   - ask_identity
   - ask_greenmarket_story
+  - ask_top_rated
+
+actions:
+  - action_show_top_rated
 
 responses:
   utter_greet:

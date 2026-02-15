@@ -22,6 +22,11 @@ rules:
   - intent: ask_greenmarket_story
   - action: utter_greenmarket_story
 
+- rule: Mostra le ricette migliori (Top Rated)
+  steps:
+  - intent: ask_top_rated
+  - action: action_show_top_rated
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

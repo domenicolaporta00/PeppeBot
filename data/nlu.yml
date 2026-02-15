@@ -101,3 +101,15 @@ nlu:
     - tell me about the history
     - how did it start?
     - who are the owners?
+
+- intent: ask_top_rated
+  examples: |
+    - show me the best recipes
+    - top rated recipes
+    - what are the most popular dishes?
+    - give me the top 5 recipes
+    - highest rated food
+    - show me user favorites
+    - i want the best food
+    - recommend me a good recipe
+    - what do people like the most?
