@@ -6,9 +6,9 @@
 
 
 from typing import Any, Text, Dict, List
-from rasa_sdk import Action, Tracker
-from rasa_sdk.executor import CollectingDispatcher
-import pandas as pd
+from rasa_sdk import Action, Tracker  # type: ignore
+from rasa_sdk.executor import CollectingDispatcher  # type: ignore
+import pandas as pd  # type: ignore
 
 # Carichiamo il dataset UNA VOLTA sola all'avvio per velocità
 # Assicurati che il file sia nella cartella principale del progetto

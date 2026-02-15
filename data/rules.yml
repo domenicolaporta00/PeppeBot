@@ -31,3 +31,8 @@ rules:
   steps:
   - intent: goodbye
   - action: utter_goodbye
+
+- rule: Rispondi con Fallback se la confidenza è bassa
+  steps:
+  - intent: nlu_fallback
+  - action: utter_fallback

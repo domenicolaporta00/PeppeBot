@@ -7,6 +7,7 @@ intents:
   - ask_identity
   - ask_greenmarket_story
   - ask_top_rated
+  - nlu_fallback
 
 actions:
   - action_show_top_rated
@@ -68,6 +69,13 @@ responses:
       Today, the shop is managed by his grandson *Giuseppe* and his business partner *Domenico La Porta*.
 
       They created this App to bring quality products directly to your home, offering exclusive discounts and custom shopping lists. 🛒
+
+  utter_fallback:
+  - text: |
+      I'm sorry, I didn't understand that. 😕
+      Could you please rephrase?
+      
+      If you are stuck, type **"help"** to see what I can do!
 
 session_config:
   session_expiration_time: 60
