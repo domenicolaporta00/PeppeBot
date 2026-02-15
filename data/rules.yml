@@ -2,17 +2,27 @@ version: "3.1"
 
 rules:
 
-- rule: Say goodbye anytime the user says goodbye
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
-
 - rule: Saluta sempre quando l'utente saluta
   steps:
   - intent: greet
   - action: utter_greet
 
-- rule: Say 'I am a bot' anytime the user challenges
+- rule: Rispondi sempre alla richiesta di aiuto (Help)
   steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  - intent: help
+  - action: utter_help
+
+- rule: Rispondi alle domande sull'identità e creatori
+  steps:
+  - intent: ask_identity
+  - action: utter_identity
+
+- rule: Racconta la storia di GreenMarket
+  steps:
+  - intent: ask_greenmarket_story
+  - action: utter_greenmarket_story
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye

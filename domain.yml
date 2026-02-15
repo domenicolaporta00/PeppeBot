@@ -3,39 +3,67 @@ version: "3.1"
 intents:
   - greet
   - goodbye
-  - affirm
-  - deny
-  - mood_great
-  - mood_unhappy
-  - bot_challenge
+  - help
+  - ask_identity
+  - ask_greenmarket_story
 
 responses:
   utter_greet:
-  - text: "Hello! 👨‍🍳 I'm PeppeBot, GreenMarket's virtual assistant. How can I help you?"
-  - text: "Hi there! Welcome to GreenMarket. Ready to cook something delicious?"
-  - text: "Greetings! PeppeBot at your service. What ingredients do you have today?"
+  - text: "Hello! 👨‍🍳 I am PeppeBot from GreenMarket. How can I help you today?"
+  - text: "Hi! Welcome to GreenMarket. Are you ready to cook something good?"
+  - text: "Hello! PeppeBot here. Tell me what ingredients you have!"
 
   utter_goodbye:
-  - text: "Bye! 👋 Happy cooking with your GreenMarket ingredients!"
-  - text: "Goodbye! Let me know if the recipe turns out delicious! 🥘"
-  - text: "See you soon! Come back when your fridge is empty again!"
+  - text: "Bye! 👋 Have fun cooking your recipe!"
+  - text: "Goodbye! I hope your meal tastes delicious! 🥘"
+  - text: "See you soon! Come back when your fridge is empty!"
   - text: "Bye! Enjoy your meal! 😋"
 
-  # utter_greet:
-  # - text: "Hello! I'm PeppeBot, GreenMarket's virtual assistant. How can I help you?"
+  utter_help:
+  - text: |
+      I am PeppeBot 👨‍🍳, your cooking assistant. Here is exactly what I can do:
 
-  utter_cheer_up:
-  - text: "Here is something to cheer you up:"
-    image: "https://i.imgur.com/nGF1K8f.jpg"
+      1. *Empty Fridge Search* 🧊
+         I find the ideal recipe based on your ingredients, time, and diet.
+         _Try saying:_ "I have chicken and tomatoes" or "Empty fridge"
 
-  utter_did_that_help:
-  - text: "Did that help you?"
+      2. *Fitness Search* 🥗
+         I filter recipes by health parameters like calories, proteins, or sugar.
+         _Try saying:_ "Recipes under 500 calories" or "High protein dish"
 
-  utter_happy:
-  - text: "Great, carry on!"
+      3. *Search by Name* 🔎
+         I find a specific dish by its name.
+         _Try saying:_ "Search for Carbonara"
 
-  utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
+      4. *Search by Category* 🍰
+         I suggest recipes for a specific category (e.g., dessert, vegan).
+         _Try saying:_ "I want a dessert" or "Show me vegan recipes"
+
+      5. *Top Rated Recipes* ⭐
+         I show recipes with the highest user ratings.
+         _Try saying:_ "Show me the best recipes"
+
+      6. *Recipe Details* 📝
+         Ask me about *Steps*, *Nutrition*, or *Cooking Time* for a dish.
+         _Try saying:_ "How do I cook this?", "Show me calories", or "How long does it take?"
+
+  utter_identity:
+  - text: |
+      I am a bot 🤖, not a human!
+      
+      I was developed in *February 2026* by *Domenico, Lorenzo, and Yassir*.
+      
+      They named me *PeppeBot* in honor of Grandfather Peppe, the original founder of GreenMarket! 🍅
+
+  utter_greenmarket_story:
+  - text: |
+      Here is our story! 📖
+
+      GreenMarket started in *1965 in Ancona*. It was founded by *Giuseppe 'Peppe' Izzi*, a farmer from Montenero di Bisaccia who moved to the city. He loved fresh and sustainable food! 🍅
+
+      Today, the shop is managed by his grandson *Giuseppe* and his business partner *Domenico La Porta*.
+
+      They created this App to bring quality products directly to your home, offering exclusive discounts and custom shopping lists. 🛒
 
 session_config:
   session_expiration_time: 60

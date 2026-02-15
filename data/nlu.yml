@@ -8,130 +8,96 @@ nlu:
     - hi
     - hello there
     - good morning
+    - good afternoon
     - good evening
-    - moin
     - hey there
-    - let's go
-    - hey dude
-    - goodafternoon
-    - goodevening
-    - good morning peppe
+    - greetings
     - hi peppe
     - hello peppebot
-    - hi there
-    - greetings
+    - hey chef
     - hello greenmarket
-    - start
-    - i am ready
+    - hi my friend
+    - nice to meet you
+    - are you there?
+    - good to see you
     - let's start
-    - hey peppe
-    - hi cook
-    - hello chef
+    - i am ready
+    - start chat
+    - hello assistant
+    - hi bot
+    - hey peppe, are you ready?
 
 - intent: goodbye
   examples: |
     - bye
     - goodbye
-    - see you around
-    - see you later
-    - have a nice day
     - bye bye
-    - cya
-    - catch you later
-    - that's all thanks
-    - thanks bye
+    - see you
+    - see you later
+    - see you soon
+    - see you next time
+    - talk to you later
+    - have a nice day
+    - have a good day
+    - good night
+    - that is all, thanks
+    - thanks, bye
+    - thank you and goodbye
     - i have to go
+    - i am leaving now
     - end chat
     - stop
-    - see ya
-    - have a good one
-    - goodnight
+    - quit
+    - i am done
+    - no more, thanks
 
-# - intent: greet
-#   examples: |
-#     - hey
-#     - hello
-#     - hi
-#     - hello there
-#     - good morning
-#     - good evening
-#     - moin
-#     - hey there
-#     - let's go
-#     - hey dude
-#     - goodmorning
-#     - goodevening
-#     - good afternoon
+- intent: help
+  examples: |
+    - what can you do?
+    - how does this work?
+    - I need help
+    - help me please
+    - what are your functions?
+    - can you cook?
+    - what are your features?
+    - guide me
+    - what can I ask you?
+    - show me what you can do
+    - how do I use this bot?
+    - give me instructions
+    - what are your skills?
 
-# - intent: goodbye
-#   examples: |
-#     - cu
-#     - good by
-#     - cee you later
-#     - good night
-#     - bye
-#     - goodbye
-#     - have a nice day
-#     - see you around
-#     - bye bye
-#     - see you later
+- intent: ask_identity
+  examples: |
+    - who are you?
+    - what is your name?
+    - are you a bot?
+    - are you a human?
+    - are you real?
+    - who made you?
+    - who created you?
+    - who developed you?
+    - who are your developers?
+    - who is domenico?
+    - who is lorenzo?
+    - who is yassir?
+    - why is your name peppe?
+    - tell me about yourself
+    - introduce yourself
+    - are you an artificial intelligence?
+    - who is the founder?
 
-# - intent: affirm
-#   examples: |
-#     - yes
-#     - y
-#     - indeed
-#     - of course
-#     - that sounds good
-#     - correct
-
-# - intent: deny
-#   examples: |
-#     - no
-#     - n
-#     - never
-#     - I don't think so
-#     - don't like that
-#     - no way
-#     - not really
-
-# - intent: mood_great
-#   examples: |
-#     - perfect
-#     - great
-#     - amazing
-#     - feeling like a king
-#     - wonderful
-#     - I am feeling very good
-#     - I am great
-#     - I am amazing
-#     - I am going to save the world
-#     - super stoked
-#     - extremely good
-#     - so so perfect
-#     - so good
-#     - so perfect
-
-# - intent: mood_unhappy
-#   examples: |
-#     - my day was horrible
-#     - I am sad
-#     - I don't feel very well
-#     - I am disappointed
-#     - super sad
-#     - I'm so sad
-#     - sad
-#     - very sad
-#     - unhappy
-#     - not good
-#     - not very good
-#     - extremly sad
-#     - so saad
-#     - so sad
-
-# - intent: bot_challenge
-  # examples: |
-  #   - are you a bot?
-  #   - are you a human?
-  #   - am I talking to a bot?
-  #   - am I talking to a human?
+- intent: ask_greenmarket_story
+  examples: |
+    - tell me the story of greenmarket
+    - what is greenmarket?
+    - when was greenmarket born?
+    - history of the shop
+    - who founded greenmarket?
+    - tell me about the origins
+    - who is peppe izzi?
+    - who are giuseppe and domenico?
+    - why did you create this app?
+    - tell me about the history
+    - how did it start?
+    - who are the owners?
