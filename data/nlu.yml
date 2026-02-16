@@ -113,3 +113,74 @@ nlu:
     - i want the best food
     - recommend me a good recipe
     - what do people like the most?
+
+- intent: search_by_name
+  examples: |
+    # --- PAROLE SINGOLE (BASE) ---
+    - Search for [Carbonara](recipe_name)
+    - Find [Lasagna](recipe_name)
+    - find [pizza](recipe_name)
+    - search [pasta](recipe_name)
+    - i want to cook [bread](recipe_name)
+    - recipe for [cake](recipe_name)
+    - show me [burger](recipe_name)
+    - do you have [sushi](recipe_name)?
+    - looking for [soup](recipe_name)
+    - search [chicken](recipe_name)
+    - find [steak](recipe_name)
+    - cook [rice](recipe_name)
+    - search [salad](recipe_name)
+    - find [tiramisu](recipe_name)
+    - i need [brownies](recipe_name)
+    - Search for [Spicy Chicken](recipe_name)
+    - Find [Banana Bread](recipe_name)
+    - i want [Mexican Pasta](recipe_name)
+    - cook [Chocolate Cake](recipe_name)
+    - search [Tomato Soup](recipe_name)
+    - find [Fried Rice](recipe_name)
+    - recipe for [Apple Pie](recipe_name)
+    - show me [Grilled Salmon](recipe_name)
+    - i want to make [Roasted Potatoes](recipe_name)
+    - search [Vegan Burger](recipe_name)
+    - find [Greek Salad](recipe_name)
+    - cook [Beef Stew](recipe_name)
+    - search [Lemon Tart](recipe_name)
+    - find [Garlic Bread](recipe_name)
+    - i want [Cheese Fondue](recipe_name)
+    - Find [Spicy Banana Bread](recipe_name)
+    - I want to cook [Homebakes Knock Off Beef Stew And Biscuits](recipe_name)
+    - Search for [The Best Banana Bread Or Muffins](recipe_name)
+    - find [Crispy Fish And Chips](recipe_name)
+    - recipe for [Jiffy Roasted Corn And Jalapeno Cornbread](recipe_name)
+    - show me [Chicken Lickin Good Pork Chops](recipe_name)
+    - i want [Smells Like Sunday Chicken Fricassee](recipe_name)
+    - search [Modified Banana Bread By Paula Deen](recipe_name)
+    - find [Mom S Amazing Banana Bread](recipe_name)
+    - cook [Italian Sandwich Pasta Salad](recipe_name)
+    - search [Make That Chicken Dance Salsa Pasta](recipe_name)
+    - find [Anna Olson S Crisp Fruit Chips](recipe_name)
+    - i want [Adobo Chips With Warm Goat Cheese](recipe_name)
+    - search [Chocolate Chip Cookies with Walnuts](recipe_name)
+    - find [Spaghetti with Meatballs and Tomato Sauce](recipe_name)
+    - can you find [spicy banana bread](recipe_name)?
+    - please search for [mexican pasta sopa](recipe_name)
+    - i am looking for a recipe called [fish and chips](recipe_name)
+    - help me cook [crispy chicken wings](recipe_name)
+    - find me something like [vegetable curry](recipe_name)
+    - search for [macaroni and cheese](recipe_name)
+    - do you know how to make [lasagna alla bolognese](recipe_name)?
+    - i crave [chocolate fudge brownies](recipe_name)
+    - give me the recipe for [pumpkin soup](recipe_name)
+    - find [creamy mushroom risotto](recipe_name)
+    - search [spaghetti aglio e olio](recipe_name)
+    - i want to bake [cinnamon rolls](recipe_name)
+    - show recipe for [stuffed peppers](recipe_name)
+    - find [pad thai with shrimp](recipe_name)
+    - search [slow cooker pulled pork](recipe_name)
+
+- intent: select_recipe
+  examples: |
+    - /select_recipe
+    - /select_recipe{"recipe_id": "123"}
+    - /select_recipe{"recipe_id": "0"}
+    - i want recipe number [10](recipe_id)

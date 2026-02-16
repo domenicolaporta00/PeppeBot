@@ -8,9 +8,30 @@ intents:
   - ask_greenmarket_story
   - ask_top_rated
   - nlu_fallback
+  - search_by_name
+  - select_recipe
+
+entities:
+  - recipe_name
+  - recipe_id
+
+slots:
+  recipe_name:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: recipe_name
+
+  recipe_id:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: recipe_id
 
 actions:
   - action_show_top_rated
+  - action_search_by_name
+  - action_select_recipe_by_id
 
 responses:
   utter_greet:

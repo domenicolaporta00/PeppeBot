@@ -27,6 +27,16 @@ rules:
   - intent: ask_top_rated
   - action: action_show_top_rated
 
+- rule: Cerca ricetta per nome
+  steps:
+  - intent: search_by_name
+  - action: action_search_by_name
+
+- rule: Seleziona ricetta per ID (click bottone)
+  steps:
+  - intent: select_recipe
+  - action: action_select_recipe_by_id
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye
