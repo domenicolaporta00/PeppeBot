@@ -190,6 +190,22 @@ nlu:
     - Find [Burrito](recipe_name)
     - Search [Couscous](recipe_name)
 
+    - i want to cook [banana bread](recipe_name)
+    - recipe for [carbonara](recipe_name)
+    - how do i make [lasagna](recipe_name)
+    - i want to bake [apple pie](recipe_name)
+    - find [pizza](recipe_name)
+    - search for [sushi](recipe_name)
+    - cook [fried rice](recipe_name)
+    - show me how to make [chocolate cake](recipe_name)
+    - i need to make [pancakes](recipe_name)
+    - find [spicy chicken](recipe_name)
+    - search [tomato soup](recipe_name)
+    - how to cook [fish and chips](recipe_name)
+    - recipe for [brownies](recipe_name)
+    - i want to prepare [salad](recipe_name)
+    - find [pasta](recipe_name)
+
 - intent: select_recipe
   examples: |
     - /select_recipe
@@ -287,6 +303,23 @@ nlu:
     - I want [chiken](category) dishes
     - Search for [diabetc](category) food
     - I need [gltn-free](category) ideas
+    
+    # Per input multipli
+    - I want [vegan](category) [italian](category) food
+    - find [easy](category) [dinner](category) recipes
+    - search for [spicy](category) [mexican](category) dishes
+    - i want [gluten-free](category) [desserts](category)
+    - show me [healthy](category) [chicken](category) recipes
+    - find [low-carb](category) [lunch](category) ideas
+    - i want [winter](category) [soup](category)
+    - recipes for [christmas](category) [cookies](category)
+    - [italian](category) [vegetarian](category) dishes
+    - something [sweet](category) and [easy](category)
+    - [asian](category) [spicy](category) food
+    - [low-calorie](category) [pasta](category)
+    - I want [vegan](category) [gluten-free](category) [italian](category) food
+    - find [easy](category) [chocolate](category) [dessert](category) for [christmas](category)
+    - [spicy](category) [mexican](category) [dinner](category) ideas
 
 - lookup: category
   examples: |

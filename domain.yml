@@ -31,7 +31,7 @@ slots:
         entity: recipe_id
 
   category:
-    type: text
+    type: list
     mappings:
       - type: from_entity
         entity: category

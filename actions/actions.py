@@ -221,6 +221,7 @@ class ActionSearchByCategory(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
+        # Ora user_input sarà una LISTA (es. ['vegan', 'italian'])
         user_input = tracker.get_slot("category")
         
         if not user_input:
@@ -231,54 +232,71 @@ class ActionSearchByCategory(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        search_tag = user_input.lower().strip()
-        print(f"🔍 Categoria cercata dall'utente: '{search_tag}'")
+        # Assicuriamoci che sia una lista (per sicurezza)
+        if isinstance(user_input, str):
+            user_input = [user_input]
 
-        # --- 1. RICERCA DIRETTA (Substring) ---
-        # Cerchiamo se la colonna 'tags' contiene la parola scritta dall'utente.
-        # Es. se scrivo "winter", trova tutte le righe che hanno 'winter' nei tag.
-        matches = DATASET[DATASET['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
+        print(f"🔍 Categorie cercate dall'utente (raw): {user_input}")
 
-        # --- 2. FUZZY MATCH (Se non trova nulla) ---
-        if matches.empty and ALL_UNIQUE_TAGS:
-            try:
-                # Cerca nella lista dei tag validi qual è il più simile a "vegam"
-                best_match, score = process.extractOne(search_tag, ALL_UNIQUE_TAGS)
-                print(f"💡 Fuzzy Match: '{search_tag}' -> '{best_match}' (Score: {score})")
+        # Iniziamo col dataset completo
+        matches = DATASET.copy()
+        
+        # Lista per tenere traccia dei tag validi trovati (per il messaggio finale)
+        found_tags = []
 
-                if score >= 70: # Soglia di tolleranza
-                    dispatcher.utter_message(text=f"Did you mean **{best_match}**? Showing recipes for that! 🥗")
-                    # Rifacciamo la ricerca con il tag corretto
-                    matches = DATASET[DATASET['tags'].str.contains(best_match, case=False, na=False, regex=False)]
-                    search_tag = best_match # Aggiorniamo per il messaggio finale
-            except Exception as e:
-                print(f"⚠️ Errore Fuzzy: {e}")
-
-        # --- 3. RISULTATI (Identico alla ricerca per nome) ---
-        if not matches.empty:
-            # Ordiniamo per rating
-            matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+        # --- CICLO DI FILTRAGGIO ---
+        # Per ogni tag chiesto dall'utente, restringiamo i risultati
+        for item in user_input:
+            search_tag = item.lower().strip()
             
+            # 1. Fuzzy Check per il singolo tag
+            # Se il tag non è contenuto nel DB (controllo rapido), proviamo a correggerlo
+            # Nota: qui usiamo una logica semplificata per velocità
+            current_tag_matches = matches[matches['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
+            
+            if current_tag_matches.empty and ALL_UNIQUE_TAGS:
+                try:
+                    best_match, score = process.extractOne(search_tag, ALL_UNIQUE_TAGS)
+                    if score >= 65:
+                        print(f"💡 Fuzzy Correction: '{search_tag}' -> '{best_match}'")
+                        search_tag = best_match
+                except:
+                    pass
+            
+            # Aggiungiamo il tag (originale o corretto) alla lista dei confermati
+            found_tags.append(search_tag)
+
+            # 2. APPLICAZIONE FILTRO
+            # Restringiamo il dataset `matches` solo alle righe che hanno QUESTO tag
+            matches = matches[matches['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
+            
+            # Se a un certo punto non rimane nulla (es. "Vegan" + "Steak"), fermiamoci
+            if matches.empty:
+                break
+
+        # --- RISULTATI ---
+        tags_str = " + ".join([f"**{t}**" for t in found_tags])
+        
+        if not matches.empty:
+            matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
             count = len(matches)
             top_matches = matches.head(5)
 
-            dispatcher.utter_message(text=f"🔍 I found {count} recipes tagged as **'{search_tag}'**! Here are the best ones:")
+            dispatcher.utter_message(text=f"🔍 I found {count} recipes matching {tags_str}! Here are the best ones:")
             
             buttons = []
             for index, row in top_matches.iterrows():
                 r_name = row['name'].title()
                 r_rate = row['rating_medio']
-                
                 title = f"{r_name} ({r_rate}⭐)"
-                
-                # USIAMO GLI ID! Così cliccando va dritto alla ricetta giusta
                 payload = f'/select_recipe{{"recipe_id":"{index}"}}'
-                
                 buttons.append({"title": title, "payload": payload})
             
             dispatcher.utter_message(buttons=buttons)
         
         else:
-            dispatcher.utter_message(text=f"😔 I couldn't find any tag matching **'{user_input}'**. Try something else like 'Winter', 'Vegan', or 'Pasta'.")
+            # Messaggio intelligente: dice quali tag combinati non hanno prodotto risultati
+            dispatcher.utter_message(text=f"😔 No recipes found matching ALL these criteria: {tags_str}. Try searching for just one of them.")
         
+        # Resetta lo slot
         return [SlotSet("category", None)]
