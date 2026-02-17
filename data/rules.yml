@@ -42,6 +42,11 @@ rules:
   - intent: search_by_category
   - action: action_search_by_category
 
+- rule: Chiedi nutrizione
+  steps:
+  - intent: ask_nutrition
+  - action: action_ask_nutrition
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

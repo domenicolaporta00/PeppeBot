@@ -300,3 +300,129 @@ class ActionSearchByCategory(Action):
         
         # Resetta lo slot
         return [SlotSet("category", None)]
+    
+class ActionAskNutrition(Action):
+    def name(self) -> Text:
+        return "action_ask_nutrition"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # Prendiamo tutti i possibili slot
+        recipe_id = tracker.get_slot("recipe_id")
+        recipe_name = tracker.get_slot("recipe_name")
+        requested_nutrient = tracker.get_slot("nutrient")
+        
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        row = None # Qui metteremo la riga della ricetta trovata
+
+        # --- 1. PRIORITÀ ASSOLUTA ALL'ID (Click dal Bottone) ---
+        # Se abbiamo un ID, ignoriamo il nome e prendiamo la riga esatta.
+        if recipe_id:
+            try:
+                r_index = int(recipe_id)
+                # Controlliamo se l'indice è valido
+                if 0 <= r_index < len(DATASET):
+                    row = DATASET.iloc[r_index]
+                    print(f"✅ Trovata ricetta via ID: {r_index} -> {row['name']}")
+                else:
+                    dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
+                    return [SlotSet("recipe_id", None)]
+            except ValueError:
+                pass # Se l'ID non è un numero, proseguiamo con la ricerca per nome
+
+        # --- 2. RICERCA PER NOME (Solo se non abbiamo trovato via ID) ---
+        if row is None and recipe_name:
+            search_term = recipe_name.lower().strip()
+            
+            # Ricerca ampia (contains)
+            matches = DATASET[DATASET['name'].str.contains(search_term, case=False, na=False, regex=False)]
+            
+            # Fuzzy fallback
+            if matches.empty and ALL_UNIQUE_TAGS:
+                try:
+                    all_names = DATASET['name'].tolist()
+                    best_match, score = process.extractOne(search_term, all_names)
+                    if score >= 60:
+                        dispatcher.utter_message(text=f"Did you mean **{best_match}**? Checking... 🕵️")
+                        matches = DATASET[DATASET['name'].str.contains(best_match, case=False, na=False, regex=False)]
+                except:
+                    pass
+
+            if not matches.empty:
+                # Ordiniamo
+                matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+                unique_names = matches['name'].unique()
+                
+                # SE CI SONO AMBIGUITÀ -> MOSTRIAMO I BOTTONI CON L'ID
+                if len(unique_names) > 1:
+                    dispatcher.utter_message(text=f"🔍 I found multiple recipes for **'{recipe_name}'**. Select the exact one:")
+                    
+                    buttons = []
+                    # Prendiamo i primi 5 risultati diversi
+                    for index, r in matches.head(5).iterrows():
+                        r_name = r['name'].title()
+                        
+                        # --- LA MODIFICA CHIAVE È QUI ---
+                        # Il payload ora passa 'recipe_id' (che è l'indice), NON il nome.
+                        # Passiamo anche 'nutrient' per ricordarci cosa voleva sapere l'utente (cal, sugar, ecc)
+                        nutr_payload = f', "nutrient": "{requested_nutrient}"' if requested_nutrient else ''
+                        
+                        # Esempio: /ask_nutrition{"recipe_id": "123", "nutrient": "calories"}
+                        payload = f'/ask_nutrition{{"recipe_id":"{index}"{nutr_payload}}}'
+                        
+                        buttons.append({"title": r_name, "payload": payload})
+                    
+                    dispatcher.utter_message(buttons=buttons)
+                    return [] # Ci fermiamo qui e aspettiamo il click
+                
+                else:
+                    # Match unico
+                    row = matches.iloc[0]
+            else:
+                dispatcher.utter_message(text=f"😔 I couldn't find nutritional info for **{recipe_name}**.")
+                return [SlotSet("recipe_name", None)]
+
+        # --- 3. MOSTRA RISULTATI (Se abbiamo trovato 'row') ---
+        if row is not None:
+            r_name = row['name'].title()
+            
+            # MAPPING COLONNE
+            column_map = {
+                "calories": "calories", "total_fat": "total_fat", "fat": "total_fat",
+                "sugar": "sugar", "sodium": "sodium", "protein": "protein",
+                "saturated_fat": "saturated_fat", "saturated": "saturated_fat",
+                "carbohydrates": "carbohydrates", "carbs": "carbohydrates"
+            }
+
+            if requested_nutrient:
+                clean_nutrient = requested_nutrient.lower().replace(" ", "_")
+                col_name = column_map.get(clean_nutrient, clean_nutrient)
+
+                if col_name in row:
+                    value = row[col_name]
+                    unit = "kcal" if col_name == "calories" else "% PDV"
+                    dispatcher.utter_message(text=f"📊 **{r_name}** contains **{value} {unit}** of {requested_nutrient}.")
+                else:
+                    dispatcher.utter_message(text=f"⚠️ Info about '{requested_nutrient}' not available.")
+            else:
+                msg = (
+                    f"📊 **Nutritional Info for {r_name}**:\n\n"
+                    f"🔥 **Calories:** {row['calories']} kcal\n"
+                    f"🥓 **Total Fat:** {row['total_fat']}% PDV\n"
+                    f"🍬 **Sugar:** {row['sugar']}% PDV\n"
+                    f"🧂 **Sodium:** {row['sodium']}% PDV\n"
+                    f"🥩 **Protein:** {row['protein']}% PDV\n"
+                    f"🧈 **Saturated Fat:** {row['saturated_fat']}% PDV\n"
+                    f"🍞 **Carbohydrates:** {row['carbohydrates']}% PDV\n\n"
+                    f"*(PDV = Percent Daily Value)*"
+                )
+                dispatcher.utter_message(text=msg)
+
+        # Resettiamo TUTTI gli slot per evitare conflitti futuri
+        return [SlotSet("recipe_name", None), SlotSet("recipe_id", None), SlotSet("nutrient", None)]
+    

@@ -11,11 +11,13 @@ intents:
   - search_by_name
   - select_recipe
   - search_by_category
+  - ask_nutrition
 
 entities:
   - recipe_name
   - recipe_id
   - category
+  - nutrient
 
 slots:
   recipe_name:
@@ -36,11 +38,18 @@ slots:
       - type: from_entity
         entity: category
 
+  nutrient:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: nutrient
+
 actions:
   - action_show_top_rated
   - action_search_by_name
   - action_select_recipe_by_id
   - action_search_by_category
+  - action_ask_nutrition
 
 responses:
   utter_greet:

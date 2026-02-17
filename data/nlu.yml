@@ -321,6 +321,43 @@ nlu:
     - find [easy](category) [chocolate](category) [dessert](category) for [christmas](category)
     - [spicy](category) [mexican](category) [dinner](category) ideas
 
+- intent: ask_nutrition
+  examples: |
+    # --- DOMANDE GENERALI (Tutti i valori) ---
+    - nutritional info for [Lasagna](recipe_name)
+    - nutrition facts for [Tiramisu](recipe_name)
+    - tell me the nutrition of [burger](recipe_name)
+    - is [Pizza](recipe_name) healthy?
+    - values for [carbonara](recipe_name)
+    - nutrition data for [apple pie](recipe_name)
+    - give me nutrition info for [spaghetti bolognese](recipe_name)
+    - health info for [salad](recipe_name)
+    - nutrition [banana bread](recipe_name)
+    - show me values for [roasted chicken](recipe_name)
+    - nutritional values of [sushi](recipe_name)
+    
+    # --- DOMANDE SU NUTRIENTI SPECIFICI (Misto Maiuscole/Minuscole) ---
+    - How many [calories](nutrient) in [Carbonara](recipe_name)?
+    - how much [sugar](nutrient) is in [apple pie](recipe_name)?
+    - [protein](nutrient) content of [chicken salad](recipe_name)
+    - tell me the [fat](nutrient) of [Steak](recipe_name)
+    - [carbohydrates](nutrient) in [pasta](recipe_name)
+    - how much [sodium](nutrient) in [ramen](recipe_name)
+    - [saturated fat](nutrient) in [Burger](recipe_name)
+    - [calories](nutrient) [Banana Bread](recipe_name)
+    - what is the [sugar](nutrient) content in [chocolate cake](recipe_name)?
+    - check [sodium](nutrient) for [french fries](recipe_name)
+    - amount of [protein](nutrient) in [tofu](recipe_name)
+    - [calories](nutrient) in [pizza margherita](recipe_name)
+    - how much [fat](nutrient) in [cheesecake](recipe_name)?
+    - [carbs](nutrient) in [bread](recipe_name)
+    - count [calories](nutrient) for [tacos](recipe_name)
+    - [sugar](nutrient) levels in [brownies](recipe_name)
+    - is there a lot of [fat](nutrient) in [fried chicken](recipe_name)?
+    - nutrition [protein](nutrient) for [fish and chips](recipe_name)
+    - [calories](nutrient) of [risotto](recipe_name)
+    - how many [carbs](nutrient) in [rice](recipe_name)
+
 - lookup: category
   examples: |
     - preparation
@@ -874,3 +911,25 @@ nlu:
     - throw the ultimate fiesta with this sopaipillas recipe from food.com.
     - roast-beef-main-dish
     - roast-beef-comfort-food
+
+- synonym: calories
+  examples: |
+    - cal
+    - kcal
+    - energy
+
+- synonym: carbohydrates
+  examples: |
+    - carbs
+    - carb
+    - carbo
+
+- synonym: total_fat
+  examples: |
+    - fat
+    - fats
+
+- synonym: saturated_fat
+  examples: |
+    - sat fat
+    - saturated
