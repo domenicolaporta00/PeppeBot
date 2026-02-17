@@ -10,10 +10,12 @@ intents:
   - nlu_fallback
   - search_by_name
   - select_recipe
+  - search_by_category
 
 entities:
   - recipe_name
   - recipe_id
+  - category
 
 slots:
   recipe_name:
@@ -28,10 +30,17 @@ slots:
       - type: from_entity
         entity: recipe_id
 
+  category:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: category
+
 actions:
   - action_show_top_rated
   - action_search_by_name
   - action_select_recipe_by_id
+  - action_search_by_category
 
 responses:
   utter_greet:

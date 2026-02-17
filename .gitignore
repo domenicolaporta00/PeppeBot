@@ -17,3 +17,9 @@ env/
 
 # --- SISTEMA ---
 .DS_Store
+
+# --- FILE MIEI ---
+estrai_tag.py
+estrai_tag_2.py
+lista_tag.txt
+tags_lookup.yml

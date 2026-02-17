@@ -5,6 +5,7 @@
 # https://rasa.com/docs/rasa/custom-actions
 
 
+import ast
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker  # type: ignore
 from rasa_sdk.executor import CollectingDispatcher  # type: ignore
@@ -13,26 +14,40 @@ from rasa_sdk.events import FollowupAction  # type: ignore
 import pandas as pd  # type: ignore
 from fuzzywuzzy import process  # type: ignore
 
+PERCORSO_DATASET = 'dataset/dataset_svuotafrigo_finale.csv'  # Assicurati che il percorso sia corretto
+
 # Carichiamo il dataset una volta sola all'avvio
 try:
-    DATASET = pd.read_csv('dataset/dataset_svuotafrigo_finale.csv')
+    DATASET = pd.read_csv(PERCORSO_DATASET)
     DATASET['name'] = DATASET['name'].astype(str)
     
-    # Pulizia numeri
+    # Pulizia numeri e reset indici per gli ID
     DATASET['rating_medio'] = pd.to_numeric(DATASET['rating_medio'], errors='coerce').fillna(0)
     if 'num_voti' in DATASET.columns:
         DATASET['num_voti'] = pd.to_numeric(DATASET['num_voti'], errors='coerce').fillna(0)
     else:
         DATASET['num_voti'] = 0
     
-    # IMPORTANTE: Resettiamo l'indice per essere sicuri che sia 0, 1, 2, 3...
-    # Questo indice sarà il nostro "ID" univoco.
-    DATASET = DATASET.reset_index(drop=True)
-    
-    print("✅ Dataset caricato. Usa l'indice di riga come ID univoco.")
+    DATASET = DATASET.reset_index(drop=True) # FONDAMENTALE PER GLI ID
+
+    # Creiamo una lista unica di TUTTI i tag presenti nel file per il Fuzzy Match
+    print("🔄 Indicizzazione dei tag per la ricerca dinamica...")
+    all_tags_set = set()
+    for tag_str in DATASET['tags'].dropna():
+        try:
+            # tag_str è "['vegan', 'spicy']", lo convertiamo in lista vera
+            t_list = ast.literal_eval(tag_str)
+            for t in t_list:
+                all_tags_set.add(t.lower())
+        except:
+            pass
+    ALL_UNIQUE_TAGS = list(all_tags_set)
+    print(f"✅ Tag indicizzati: {len(ALL_UNIQUE_TAGS)} tag unici pronti.")
+
 except Exception as e:
     print(f"❌ ERRORE CARICAMENTO DATASET: {e}")
     DATASET = None
+    ALL_UNIQUE_TAGS = []
 
 class ActionShowTopRated(Action):
 
@@ -197,3 +212,73 @@ class ActionSelectRecipeById(Action):
 
         # Puliamo lo slot ID
         return [SlotSet("recipe_id", None)]
+    
+class ActionSearchByCategory(Action):
+    def name(self) -> Text:
+        return "action_search_by_category"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        user_input = tracker.get_slot("category")
+        
+        if not user_input:
+            dispatcher.utter_message(text="❓ What category are you looking for? (e.g., Winter, Spicy, Vegan)")
+            return []
+
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        search_tag = user_input.lower().strip()
+        print(f"🔍 Categoria cercata dall'utente: '{search_tag}'")
+
+        # --- 1. RICERCA DIRETTA (Substring) ---
+        # Cerchiamo se la colonna 'tags' contiene la parola scritta dall'utente.
+        # Es. se scrivo "winter", trova tutte le righe che hanno 'winter' nei tag.
+        matches = DATASET[DATASET['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
+
+        # --- 2. FUZZY MATCH (Se non trova nulla) ---
+        if matches.empty and ALL_UNIQUE_TAGS:
+            try:
+                # Cerca nella lista dei tag validi qual è il più simile a "vegam"
+                best_match, score = process.extractOne(search_tag, ALL_UNIQUE_TAGS)
+                print(f"💡 Fuzzy Match: '{search_tag}' -> '{best_match}' (Score: {score})")
+
+                if score >= 70: # Soglia di tolleranza
+                    dispatcher.utter_message(text=f"Did you mean **{best_match}**? Showing recipes for that! 🥗")
+                    # Rifacciamo la ricerca con il tag corretto
+                    matches = DATASET[DATASET['tags'].str.contains(best_match, case=False, na=False, regex=False)]
+                    search_tag = best_match # Aggiorniamo per il messaggio finale
+            except Exception as e:
+                print(f"⚠️ Errore Fuzzy: {e}")
+
+        # --- 3. RISULTATI (Identico alla ricerca per nome) ---
+        if not matches.empty:
+            # Ordiniamo per rating
+            matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+            
+            count = len(matches)
+            top_matches = matches.head(5)
+
+            dispatcher.utter_message(text=f"🔍 I found {count} recipes tagged as **'{search_tag}'**! Here are the best ones:")
+            
+            buttons = []
+            for index, row in top_matches.iterrows():
+                r_name = row['name'].title()
+                r_rate = row['rating_medio']
+                
+                title = f"{r_name} ({r_rate}⭐)"
+                
+                # USIAMO GLI ID! Così cliccando va dritto alla ricetta giusta
+                payload = f'/select_recipe{{"recipe_id":"{index}"}}'
+                
+                buttons.append({"title": title, "payload": payload})
+            
+            dispatcher.utter_message(buttons=buttons)
+        
+        else:
+            dispatcher.utter_message(text=f"😔 I couldn't find any tag matching **'{user_input}'**. Try something else like 'Winter', 'Vegan', or 'Pasta'.")
+        
+        return [SlotSet("category", None)]
