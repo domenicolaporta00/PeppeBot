@@ -15,9 +15,13 @@ import pandas as pd  # type: ignore
 from fuzzywuzzy import process  # type: ignore
 
 PERCORSO_DATASET = 'dataset/dataset_svuotafrigo_finale.csv'  # Assicurati che il percorso sia corretto
+ALL_UNIQUE_TAGS = []
+ALL_UNIQUE_INGREDIENTS = []
+DATASET = None
 
 # Carichiamo il dataset una volta sola all'avvio
 try:
+    print(f"📂 Caricamento dataset da: {PERCORSO_DATASET}")
     DATASET = pd.read_csv(PERCORSO_DATASET)
     DATASET['name'] = DATASET['name'].astype(str)
     
@@ -30,24 +34,36 @@ try:
     
     DATASET = DATASET.reset_index(drop=True) # FONDAMENTALE PER GLI ID
 
-    # Creiamo una lista unica di TUTTI i tag presenti nel file per il Fuzzy Match
-    print("🔄 Indicizzazione dei tag per la ricerca dinamica...")
+    # --- 1. INDICIZZAZIONE TAG ---
+    print("🔄 Indicizzazione dei TAG...")
     all_tags_set = set()
     for tag_str in DATASET['tags'].dropna():
         try:
-            # tag_str è "['vegan', 'spicy']", lo convertiamo in lista vera
             t_list = ast.literal_eval(tag_str)
             for t in t_list:
                 all_tags_set.add(t.lower())
         except:
             pass
     ALL_UNIQUE_TAGS = list(all_tags_set)
-    print(f"✅ Tag indicizzati: {len(ALL_UNIQUE_TAGS)} tag unici pronti.")
+    print(f"✅ Tag indicizzati: {len(ALL_UNIQUE_TAGS)}")
+
+    # --- 2. INDICIZZAZIONE INGREDIENTI (NUOVO) ---
+    print("🔄 Indicizzazione degli INGREDIENTI...")
+    all_ing_set = set()
+    for ing_str in DATASET['ingredients'].dropna():
+        try:
+            # ing_str è "['onion', 'garlic']"
+            i_list = ast.literal_eval(ing_str)
+            for i in i_list:
+                all_ing_set.add(i.lower().strip())
+        except:
+            pass
+    ALL_UNIQUE_INGREDIENTS = list(all_ing_set)
+    print(f"✅ Ingredienti indicizzati: {len(ALL_UNIQUE_INGREDIENTS)}")
 
 except Exception as e:
-    print(f"❌ ERRORE CARICAMENTO DATASET: {e}")
+    print(f"❌ ERRORE CRITICO CARICAMENTO DATASET: {e}")
     DATASET = None
-    ALL_UNIQUE_TAGS = []
 
 class ActionShowTopRated(Action):
 
@@ -426,3 +442,182 @@ class ActionAskNutrition(Action):
         # Resettiamo TUTTI gli slot per evitare conflitti futuri
         return [SlotSet("recipe_name", None), SlotSet("recipe_id", None), SlotSet("nutrient", None)]
     
+class ActionAskCookingTime(Action):
+    def name(self) -> Text:
+        return "action_ask_cooking_time"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        recipe_id = tracker.get_slot("recipe_id")
+        recipe_name = tracker.get_slot("recipe_name")
+        
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        row = None # Qui metteremo la riga trovata
+
+        # --- 1. PRIORITÀ ID (Se clicco un bottone) ---
+        if recipe_id:
+            try:
+                r_index = int(recipe_id)
+                if 0 <= r_index < len(DATASET):
+                    row = DATASET.iloc[r_index]
+                else:
+                    dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
+                    return [SlotSet("recipe_id", None)]
+            except ValueError:
+                pass
+
+        # --- 2. RICERCA PER NOME (Se non ho ID) ---
+        if row is None and recipe_name:
+            search_term = recipe_name.lower().strip()
+            
+            # Ricerca ampia
+            matches = DATASET[DATASET['name'].str.contains(search_term, case=False, na=False, regex=False)]
+            
+            # Fuzzy fallback
+            if matches.empty and ALL_UNIQUE_TAGS:
+                try:
+                    all_names = DATASET['name'].tolist()
+                    best_match, score = process.extractOne(search_term, all_names)
+                    if score >= 60:
+                        dispatcher.utter_message(text=f"Did you mean **{best_match}**? Checking time... ⏱️")
+                        matches = DATASET[DATASET['name'].str.contains(best_match, case=False, na=False, regex=False)]
+                except:
+                    pass
+
+            if not matches.empty:
+                matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+                unique_names = matches['name'].unique()
+                
+                # AMBIGUITÀ -> BOTTONI CON ID
+                if len(unique_names) > 1:
+                    dispatcher.utter_message(text=f"⏱️ I found multiple recipes for **'{recipe_name}'**. Which one?")
+                    
+                    buttons = []
+                    for index, r in matches.head(5).iterrows():
+                        r_name = r['name'].title()
+                        # Payload punta a questa azione ma con l'ID
+                        payload = f'/ask_cooking_time{{"recipe_id":"{index}"}}'
+                        buttons.append({"title": r_name, "payload": payload})
+                    
+                    dispatcher.utter_message(buttons=buttons)
+                    return []
+                
+                else:
+                    # Match unico
+                    row = matches.iloc[0]
+            else:
+                dispatcher.utter_message(text=f"😔 I couldn't find cooking times for **{recipe_name}**.")
+                return [SlotSet("recipe_name", None)]
+
+        # --- 3. MOSTRA RISULTATO (Se ho trovato la riga) ---
+        if row is not None:
+            r_name = row['name'].title()
+            r_minutes = row['minutes']
+            
+            # Formattazione carina del tempo
+            if r_minutes > 60:
+                hours = int(r_minutes // 60)
+                mins = int(r_minutes % 60)
+                time_str = f"{hours}h {mins}m"
+            else:
+                time_str = f"{r_minutes} minutes"
+
+            dispatcher.utter_message(text=f"⏱️ **{r_name}** takes about **{time_str}** to make.")
+
+        # Reset slot
+        return [SlotSet("recipe_name", None), SlotSet("recipe_id", None)]
+
+class ActionSearchByIngredient(Action):
+    def name(self) -> Text:
+        return "action_search_by_ingredient"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # 1. Recupera Input Utente (slot 'ingredient')
+        user_input = tracker.get_slot("ingredient")
+        
+        if not user_input:
+            dispatcher.utter_message(text="❓ What ingredients do you have? (e.g., Chicken, Onion, Eggs)")
+            return []
+
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        # Assicuriamoci che sia una lista
+        if isinstance(user_input, str):
+            user_input = [user_input]
+
+        print(f"🥦 Ingredienti cercati dall'utente (raw): {user_input}")
+
+        # Iniziamo col dataset completo
+        matches = DATASET.copy()
+        
+        # Lista per tenere traccia degli ingredienti validi trovati
+        found_ingredients = []
+
+        # --- CICLO DI FILTRAGGIO (Logica AND) ---
+        for item in user_input:
+            search_item = item.lower().strip()
+            
+            # A. Fuzzy Check sul singolo ingrediente
+            # Cerchiamo se esiste nel DB o se va corretto usando ALL_UNIQUE_INGREDIENTS
+            
+            # Controllo rapido se c'è già un match esatto nel subset corrente
+            current_matches = matches[matches['ingredients'].str.contains(search_item, case=False, na=False, regex=False)]
+            
+            # Se non troviamo nulla e abbiamo la lista globale, proviamo il Fuzzy
+            if current_matches.empty and ALL_UNIQUE_INGREDIENTS:
+                try:
+                    best_match, score = process.extractOne(search_item, ALL_UNIQUE_INGREDIENTS)
+                    # Soglia leggermente più alta per ingredienti (70-75) per evitare falsi positivi strani
+                    if score >= 70:
+                        print(f"💡 Fuzzy Ingredient Correction: '{search_item}' -> '{best_match}'")
+                        search_item = best_match
+                except:
+                    pass
+            
+            # Aggiungiamo l'ingrediente (originale o corretto) alla lista dei confermati
+            found_ingredients.append(search_item)
+
+            # B. APPLICAZIONE FILTRO
+            # Restringiamo il dataset `matches` alle sole righe che contengono questo ingrediente
+            matches = matches[matches['ingredients'].str.contains(search_item, case=False, na=False, regex=False)]
+            
+            # Se a un certo punto non rimane nulla, fermiamoci
+            if matches.empty:
+                break
+
+        # --- RISULTATI ---
+        ing_str = " + ".join([f"**{i}**" for i in found_ingredients])
+        
+        if not matches.empty:
+            # Ordiniamo per rating
+            matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+            count = len(matches)
+            top_matches = matches.head(5)
+
+            dispatcher.utter_message(text=f"🍳 I found {count} recipes using {ing_str}! Here are the best ones:")
+            
+            buttons = []
+            for index, row in top_matches.iterrows():
+                r_name = row['name'].title()
+                r_rate = row['rating_medio']
+                title = f"{r_name} ({r_rate}⭐)"
+                payload = f'/select_recipe{{"recipe_id":"{index}"}}'
+                buttons.append({"title": title, "payload": payload})
+            
+            dispatcher.utter_message(buttons=buttons)
+        
+        else:
+            dispatcher.utter_message(text=f"😔 No recipes found containing ALL these ingredients: {ing_str}. Try searching for just one of them.")
+        
+        # Resetta lo slot
+        return [SlotSet("ingredient", None)]

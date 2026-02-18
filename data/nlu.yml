@@ -206,6 +206,16 @@ nlu:
     - i want to prepare [salad](recipe_name)
     - find [pasta](recipe_name)
 
+    - I want to cook [Lemon Buttercream Pancakes With Blueberries](recipe_name)
+    - I want to cook [Blueberry Pancakes Milk Free Egg Free](recipe_name)
+    - recipe for [Lemon Buttercream Pancakes With Blueberries](recipe_name)
+    - give me the recipe for [Blueberry Pancakes Milk Free Egg Free](recipe_name)
+
+    - recipe for [Super Long Recipe Name With Many Adjectives](recipe_name)
+    - I want to make [Chicken Breast With Sour Cream And Mushroom Sauce](recipe_name)
+    - find [Whole Wheat Pasta With Spinach And Garlic Oil](recipe_name)
+    - search for [Chocolate Chip Cookies With Walnuts And Sea Salt](recipe_name)
+
 - intent: select_recipe
   examples: |
     - /select_recipe
@@ -358,559 +368,112 @@ nlu:
     - [calories](nutrient) of [risotto](recipe_name)
     - how many [carbs](nutrient) in [rice](recipe_name)
 
+- intent: ask_cooking_time
+  examples: |
+    # --- DOMANDE DIRETTE (How long...) ---
+    - how long to cook [Carbonara](recipe_name)?
+    - how long does it take to make [Lasagna](recipe_name)?
+    - how long for [Pizza](recipe_name)?
+    - how long to bake [Banana Bread](recipe_name)?
+    - how long do I need for [Risotto](recipe_name)?
+    - how long is the preparation for [Sushi](recipe_name)?
+    - how long to prepare [Tiramisu](recipe_name)?
+    - how long for [Roasted Chicken](recipe_name)?
+    - how long does [Beef Stew](recipe_name) take?
+    - how long to cook [Spaghetti Bolognese](recipe_name)?
+    
+    # --- DOMANDE SUI MINUTI/TEMPO ---
+    - preparation time for [Apple Pie](recipe_name)
+    - cooking time [Burger](recipe_name)
+    - how many minutes for [Pancakes](recipe_name)?
+    - time to make [Cheesecake](recipe_name)
+    - [Brownies](recipe_name) cooking time
+    - what is the duration of [Greek Salad](recipe_name)?
+    - tell me the time for [Guacamole](recipe_name)
+    - minutes for [Pasta](recipe_name)
+    - time needed for [Vegetable Soup](recipe_name)
+    - cooking duration [Steak](recipe_name)
+    - check time for [Muffins](recipe_name)
+    - how much time for [Fried Rice](recipe_name)?
+    - [Omelette](recipe_name) time
+    - time required for [Waffles](recipe_name)
+    - total time for [Fish and Chips](recipe_name)
+
+    # --- NOMI LUNGHI E COMPLESSI (Fondamentale per la robustezza) ---
+    - how long to cook [Creamy Mushroom Risotto with Truffle Oil](recipe_name)?
+    - time for [Spicy Chicken Wings with Blue Cheese Sauce](recipe_name)
+    - how many minutes for [Slow Cooker Pulled Pork Sandwiches](recipe_name)?
+    - duration of [Vegan Lentil Soup with Spinach](recipe_name)
+    - time to make [Homemade Fresh Pasta Dough](recipe_name)
+    - cooking time for [Chocolate Chip Cookies with Walnuts](recipe_name)
+    - how long for [Roasted Pork Loin with Apples](recipe_name)?
+    - minutes to cook [Grilled Salmon with Asparagus](recipe_name)
+    - preparation time for [Grandma's Secret Apple Pie](recipe_name)
+    - how long does [Thai Green Curry with Jasmine Rice](recipe_name) take?
+    - time for [Baked Ziti with Italian Sausage](recipe_name)
+    - how long to bake [Lemon Blueberry Yogurt Loaf](recipe_name)?
+    - cooking time [Crispy Fried Calamari with Marinara](recipe_name)
+    - minutes for [Stuffed Bell Peppers with Ground Beef](recipe_name)
+    - how long for [Classic American Macaroni and Cheese](recipe_name)?
+    - time to prepare [Avocado Toast with Poached Egg](recipe_name)
+    - how long to make [Traditional Japanese Miso Soup](recipe_name)?
+    - duration for [Honey Glazed Ham with Pineapple](recipe_name)
+
+    # --- MINUSCOLE E VARIANTI (Anti-Overfitting) ---
+    - time for [banana bread](recipe_name)
+    - how long for [tomato soup](recipe_name)
+    - cooking time [fried rice](recipe_name)
+    - minutes for [chocolate cake](recipe_name)
+    - how fast is [burger](recipe_name)?
+    - how long to cook [pasta carbonara](recipe_name)
+    - time to make [pizza margherita](recipe_name)
+    - how long for [french fries](recipe_name)
+    - duration of [caesar salad](recipe_name)
+    - time for [roasted potatoes](recipe_name)
+    - how many minutes for [scrambled eggs](recipe_name)
+    - cooking time [grilled cheese sandwich](recipe_name)
+    - time to bake [carrot cake](recipe_name)
+    - how long does [pumpkin soup](recipe_name) take?
+    - minutes for [garlic bread](recipe_name)
+    - how long to make [ice cream](recipe_name)
+
+- intent: search_by_ingredient
+  examples: |
+    # --- LISTE SEMPLICI ---
+    - I have [chicken](ingredient) and [rice](ingredient)
+    - recipes with [eggs](ingredient) and [milk](ingredient)
+    - [onion](ingredient), [carrots](ingredient), [celery](ingredient)
+    - use [tomatoes](ingredient) and [basil](ingredient)
+    
+    # --- NOMI COMPOSTI (Multi-word ingredients) ---
+    - I have [white fish fillet](ingredient)
+    - recipes using [oriental sesame oil](ingredient)
+    - cook with [spanish onions](ingredient) and [hass avocado](ingredient)
+    - I want to use [chive & onion cream cheese](ingredient)
+    - do you have recipes for [cooked beef](ingredient)?
+    - I have [miniature chocolate chip](ingredient) cookies
+    - use up my [gala apples](ingredient)
+    - [hamburger meat](ingredient) and [pickles](ingredient)
+    - [pastry shells](ingredient) and [vanilla pudding](ingredient)
+    - [red bell pepper](ingredient), [yellow onion](ingredient) and [ground beef](ingredient)
+    - [extra virgin olive oil](ingredient) and [balsamic vinegar](ingredient)
+    - [boneless skinless chicken breast](ingredient)
+    
+    # --- FRASI DISCORSIVE CON LISTE ---
+    - what can I cook with [heavy cream](ingredient), [parmesan cheese](ingredient) and [butter](ingredient)?
+    - find a dish with [brown rice](ingredient) and [black beans](ingredient)
+    - I have some [leftover chicken](ingredient) and [bbq sauce](ingredient)
+    - what can I cook with [heavy cream](ingredient) [parmesan cheese](ingredient) and [butter](ingredient)?
+    - search for recipes containing [sour cream](ingredient) and [green onions](ingredient)
+    - [puff pastry](ingredient), [spinach](ingredient), [feta cheese](ingredient)
+
+- lookup: ingredient
+  examples: |
+    lookup/lista_ingredienti.txt
+
 - lookup: category
   examples: |
-    - preparation
-    - time-to-make
-    - course
-    - main-ingredient
-    - dietary
-    - easy
-    - occasion
-    - cuisine
-    - low-in-something
-    - main-dish
-    - 60-minutes-or-less
-    - equipment
-    - number-of-servings
-    - meat
-    - 30-minutes-or-less
-    - vegetables
-    - taste-mood
-    - 4-hours-or-less
-    - north-american
-    - 3-steps-or-less
-    - low-sodium
-    - desserts
-    - 15-minutes-or-less
-    - low-carb
-    - healthy
-    - dinner-party
-    - low-cholesterol
-    - low-calorie
-    - vegetarian
-    - beginner-cook
-    - 5-ingredients-or-less
-    - holiday-event
-    - inexpensive
-    - low-protein
-    - low-saturated-fat
-    - fruit
-    - american
-    - oven
-    - eggs-dairy
-    - kid-friendly
-    - pasta-rice-and-grains
-    - side-dishes
-    - healthy-2
-    - comfort-food
-    - european
-    - presentation
-    - poultry
-    - lunch
-    - for-1-or-2
-    - stove-top
-    - low-fat
-    - seasonal
-    - weeknight
-    - chicken
-    - appetizers
-    - brunch
-    - to-go
-    - for-large-groups
-    - beef
-    - one-dish-meal
-    - cheese
-    - seafood
-    - salads
-    - breads
-    - breakfast
-    - asian
-    - pasta
-    - pork
-    - cookies-and-brownies
-    - served-hot
-    - condiments-etc
-    - free-of-something
-    - technique
-    - high-in-something
-    - soups-stews
-    - beverages
-    - potluck
-    - savory
-    - sweet
-    - potatoes
-    - summer
-    - vegan
-    - cakes
-    - beans
-    - chocolate
-    - very-low-carbs
-    - eggs
-    - small-appliance
-    - spicy
-    - chicken-breasts
-    - christmas
-    - ground-beef
-    - picnic
-    - fall
-    - winter
-    - served-cold
-    - fish
-    - italian
-    - high-protein
-    - snacks
-    - southern-united-states
-    - nuts
-    - shellfish
-    - gifts
-    - mexican
-    - crock-pot-slow-cooker
-    - diabetic
-    - casseroles
-    - finger-food
-    - no-cook
-    - rice
-    - grains
-    - sandwiches
-    - berries
-    - gluten-free
-    - tomatoes
-    - quick-breads
-    - sauces
-    - tropical-fruit
-    - onions
-    - romantic
-    - saltwater-fish
-    - egg-free
-    - apples
-    - high-calcium
-    - food-processor-blender
-    - refrigerator
-    - grilling
-    - pies-and-tarts
-    - dips
-    - novelty
-    - canadian
-    - heirloom-historical
-    - toddler-friendly
-    - kosher
-    - thanksgiving
-    - cocktails
-    - shrimp
-    - oamc-freezer-make-ahead
-    - lactose
-    - barbecue
-    - spring
-    - citrus
-    - greens
-    - south-west-pacific
-    - squash
-    - southwestern-united-states
-    - bar-cookies
-    - mushrooms
-    - peppers
-    - pies
-    - brown-bag
-    - yeast
-    - drop-cookies
-    - carrots
-    - midwestern
-    - african
-    - australian
-    - from-scratch
-    - indian
-    - valentines-day
-    - muffins
-    - northeastern-united-states
-    - turkey
-    - new-years
-    - puddings-and-mousses
-    - corn
-    - greek
-    - salad-dressings
-    - easter
-    - independence-day
-    - candy
-    - copycat
-    - spreads
-    - pancakes-and-waffles
-    - french
-    - pineapple
-    - salmon
-    - broccoli
-    - strawberries
-    - 1-day-or-more
-    - microwave
-    - bananas
-    - middle-eastern
-    - savory-sauces
-    - pork-sausage
-    - chinese
-    - frozen-desserts
-    - rolls-biscuits
-    - spinach
-    - hand-formed-cookies
-    - smoothies
-    - superbowl
-    - broil
-    - pitted-fruit
-    - central-american
-    - bisques-cream-soups
-    - bacon
-    - english
-    - coconut
-    - lemon
-    - caribbean
-    - mixer
-    - chili
-    - stir-fry
-    - ham
-    - spaghetti
-    - chicken-thighs-legs
-    - pork-chops
-    - stews
-    - freezer
-    - camping
-    - elbow-macaroni
-    - tuna
-    - asparagus
-    - lamb-sheep
-    - black-beans
-    - cheesecake
-    - yams-sweet-potatoes
-    - pizza
-    - tex-mex
-    - oranges
-    - savory-pies
-    - curries
-    - blueberries
-    - crab
-    - green-yellow-beans
-    - german
-    - cake-fillings-and-frostings
-    - scandinavian
-    - omelets-and-frittatas
-    - south-american
-    - lentils
-    - soy-tofu
-    - long-grain-rice
-    - bread-machine
-    - marinades-and-rubs
-    - roast-beef
-    - thai
-    - cajun
-    - cobblers-and-crisps
-    - pork-loins
-    - chick-peas-garbanzos
-    - cauliflower
-    - roast
-    - deep-fry
-    - granola-and-porridge
-    - penne
-    - white-rice
-    - steaks
-    - spanish
-    - wedding
-    - whole-chicken
-    - raspberries
-    - steak
-    - chowders
-    - coffee-cakes
-    - cooking-mixes
-    - canning
-    - punch
-    - brownies
-    - freshwater-fish
-    - lettuces
-    - moroccan
-    - pacific-northwest
-    - peaches
-    - rolled-cookies
-    - cupcakes
-    - lasagna
-    - creole
-    - sweet-sauces
-    - japanese
-    - st-patricks-day
-    - californian
-    - jams-and-preserves
-    - shakes
-    - ontario
-    - scottish
-    - brown-rice
-    - pears
-    - herb-and-spice-mixes
-    - ravioli-tortellini
-    - halloween
-    - melons
-    - hanukkah
-    - fudge
-    - mango
-    - salsas
-    - irish
-    - gelatin
-    - lime
-    - new-zealand
-    - wings
-    - scones
-    - british-columbian
-    - celebrity
-    - flat-shapes
-    - scallops
-    - jewish-ashkenazi
-    - stuffings-dressings
-    - clear-soups
-    - wild-game
-    - cherries
-    - pork-ribs
-    - garnishes
-    - pasta-shells
-    - tarts
-    - hawaiian
-    - passover
-    - steam
-    - polish
-    - infant-baby-friendly
-    - cod
-    - beef-sausage
-    - water-bath
-    - rosh-hashana
-    - stocks
-    - crusts-pastry-dough-2
-    - russian
-    - swiss
-    - swedish
-    - tilapia
-    - portuguese
-    - vietnamese
-    - mardi-gras-carnival
-    - veal
-    - clams
-    - south-african
-    - short-grain-rice
-    - pressure-cooker
-    - hungarian
-    - high-fiber
-    - halibut
-    - lebanese
-    - non-alcoholic
-    - leftovers
-    - biscotti
-    - baking
-    - turkey-breasts
-    - turkish
-    - kwanzaa
-    - burgers
-    - ramadan
-    - simply-potatoes
-    - deer
-    - cuban
-    - iranian-persian
-    - korean
-    - brazilian
-    - beef-ribs
-    - grapes
-    - sole-and-flounder
-    - birthday
-    - danish
-    - super-bowl
-    - dutch
-    - nut-free
-    - indonesian
-    - amish-mennonite
-    - soul
-    - peanut-butter
-    - mussels
-    - filipino
-    - polynesian
-    - welsh
-    - egyptian
-    - norwegian
-    - lobster
-    - gumbo
-    - dairy-free
-    - chutneys
-    - catfish
-    - quebec
-    - jewish-sephardi
-    - whole-turkey
-    - zucchini
-    - jellies
-    - oysters
-    - finnish
-    - papaya
-    - plums
-    - austrian
-    - duck
-    - belgian
-    - native-american
-    - pennsylvania-dutch
-    - baja
-    - no-shell-fish
-    - manicotti
-    - smoker
-    - chard
-    - beef-organ-meats
-    - pakistani
-    - kiwifruit
-    - czech
-    - sourdough
-    - trout
-    - argentine
-    - collard-greens
-    - peruvian
-    - malaysian
-    - medium-grain-rice
-    - meatloaf
-    - szechuan
-    - avocado
-    - general
-    - mahi-mahi
-    - hidden-valley-ranch
-    - puerto-rican
-    - bok-choys
-    - saudi-arabian
-    - mashed-potatoes
-    - iraqi
-    - eggplant
-    - meatballs
-    - palestinian
-    - crawfish
-    - beef-liver
-    - cantonese
-    - squid
-    - ethiopian
-    - pumpkin
-    - bass
-    - chicken-livers
-    - orange-roughy
-    - chilean
-    - macaroni-and-cheese
-    - colombian
-    - oaxacan
-    - whitefish
-    - chocolate-chip-cookies
-    - ice-cream
-    - reynolds-wrap
-    - tempeh
-    - cinco-de-mayo
-    - brewing
-    - rabbit
-    - turkey-burgers
-    - dehydrator
-    - labor-day
-    - nepalese
-    - duck-breasts
-    - oatmeal
-    - memorial-day
-    - unprocessed-freezer
-    - micro-melanesia
-    - mothers-day
-    - costa-rican
-    - venezuelan
-    - rosh-hashanah
-    - pheasant
-    - cambodian
-    - icelandic
-    - whole-duck
-    - artichoke
-    - ragu-recipe-contest
-    - a1-sauce
-    - veggie-burgers
-    - pressure-canning
-    - libyan
-    - nigerian
-    - college
-    - ecuadorean
-    - guatemalan
-    - elk
-    - hunan
-    - pot-pie
-    - quiche
-    - perch
-    - fathers-day
-    - fillings-and-frostings-chocolate
-    - moose
-    - honduran
-    - sugar-cookies
-    - goose
-    - beijing
-    - quail
-    - georgian
-    - laotian
-    - sudanese
-    - octopus
-    - angolan
-    - halloween-cupcakes
-    - mongolian
-    - chinese-new-year
-    - congolese
-    - dips-lunch-snacks
-    - halloween-cakes
-    - somalian
-    - pasta-elbow-macaroni
-    - april-fools-day
-    - pickeral
-    - simply-potatoes2
-    - bear
-    - beef-kidney
-    - namibian
-    - main-dish-pork
-    - prepared-potatoes
-    - halloween-cocktails
-    - main-dish-beef
-    - main-dish-chicken
-    - breakfast-eggs
-    - spaghetti-sauce
-    - heirloom-historical-recipes
-    - side-dishes-beans
-    - beans-side-dishes
-    - pasta-salad
-    - crock-pot-main-dish
-    - eggs-breakfast
-    - beef-crock-pot
-    - pot-roast
-    - irish-st-patricks-day
-    - beef-sauces
-    - pork-loins-roast
-    - baked-beans
-    - snacks-kid-friendly
-    - snacks-sweet
-    - main-dish-pasta
-    - mushroom-soup
-    - beef-barley-soup
-    - pork-crock-pot
-    - desserts-fruit
-    - desserts-easy
-    - lasagne
-    - cabbage
-    - middle-eastern-main-dish
-    - high-in-something-diabetic-friendly
-    - dips-summer
-    - black-bean-soup
-    - bean-soup
-    - served-hot-new-years
-    - ham-and-bean-soup
-    - lamb-sheep-main-dish
-    - for-large-groups-holiday-event
-    - stews-poultry
-    - pasta-rice-and-grains-elbow-macaroni
-    - pork-loin
-    - cranberry-sauce
-    - marinara-sauce
-    - breakfast-casseroles
-    - breakfast-potatoes
-    - main-dish-seafood
-    - shrimp-main-dish
-    - pumpkin-bread
-    - bread-pudding
-    - chicken-crock-pot
-    - chicken-stews
-    - chicken-stew
-    - throw the ultimate fiesta with this sopaipillas recipe from food.com.
-    - roast-beef-main-dish
-    - roast-beef-comfort-food
+    lookup/lista_tags.txt
 
 - synonym: calories
   examples: |

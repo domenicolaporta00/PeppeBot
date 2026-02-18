@@ -47,6 +47,16 @@ rules:
   - intent: ask_nutrition
   - action: action_ask_nutrition
 
+- rule: Chiedi tempo cottura
+  steps:
+  - intent: ask_cooking_time
+  - action: action_ask_cooking_time
+
+- rule: Cerca per ingredienti
+  steps:
+  - intent: search_by_ingredient
+  - action: action_search_by_ingredient
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye
