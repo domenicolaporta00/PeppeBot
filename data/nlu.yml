@@ -498,6 +498,18 @@ nlu:
     - recommend a meal by nutritional values
     - search by calories and carbs
 
+- intent: trigger_full_meal
+  examples: |
+    - I want a full course meal
+    - plan a dinner menu for me
+    - suggest a full menu
+    - I need a complete meal
+    - give me a full course recipe list
+    - full meal mode
+    - create a menu for tonight
+    - complete dinner plan
+    - full course
+
 - lookup: ingredient
   examples: |
     lookup/lista_ingredienti.txt

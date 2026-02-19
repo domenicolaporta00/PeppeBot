@@ -17,6 +17,7 @@ intents:
   - trigger_svuota_frigo
   - inform_time
   - trigger_nutrition_search
+  - trigger_full_meal
 
 entities:
   - recipe_name
@@ -107,6 +108,14 @@ slots:
           - active_loop: nutrition_search_form
             requested_slot: max_protein
 
+  meal_tag:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: full_meal_form
+            requested_slot: meal_tag
+
 actions:
   - action_show_top_rated
   - action_search_by_name
@@ -119,6 +128,8 @@ actions:
   - action_submit_svuota_frigo
   - validate_nutrition_search_form
   - action_submit_nutrition_search
+  - validate_full_meal_form
+  - action_submit_full_meal
 
 forms:
   svuota_frigo_form:
@@ -133,6 +144,10 @@ forms:
       - max_carbs
       - max_fat
       - max_protein
+
+  full_meal_form:
+    required_slots:
+      - meal_tag
 
 responses:
   utter_greet:
@@ -212,6 +227,9 @@ responses:
   
   utter_ask_max_protein:
     - text: "🥩 Lastly, what is your TARGET for PROTEIN? (Enter a % PDV)"
+
+  utter_ask_meal_tag:
+    - text: "🍽️ Awesome! Let's plan a Full Course Meal. What THEME or TAG do you want for the menu? (e.g., Italian, Vegan, Summer)"
 
   utter_fallback:
   - text: |

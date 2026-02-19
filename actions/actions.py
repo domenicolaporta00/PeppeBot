@@ -925,3 +925,123 @@ class ActionSubmitNutritionSearch(Action):
             SlotSet("max_fat", None), 
             SlotSet("max_protein", None)
         ]
+
+# =============================================================================
+# VALIDAZIONE FORM FULL MEAL
+# =============================================================================
+class ValidateFullMealForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_full_meal_form"
+
+    def validate_meal_tag(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        
+        text = tracker.latest_message.get("text", "").lower()
+        
+        # Pulizia testo
+        for word in ["i want ", "make it ", "theme ", "diet "]:
+            text = text.replace(word, "")
+            
+        clean_tag = text.strip()
+
+        if not clean_tag:
+            dispatcher.utter_message(text="🛑 I didn't catch that. Please provide a theme (e.g., 'Mexican').")
+            return {"meal_tag": None}
+
+        # Fuzzy Check contro il nostro database di Tag
+        if clean_tag in ALL_UNIQUE_TAGS:
+            return {"meal_tag": clean_tag}
+        else:
+            if ALL_UNIQUE_TAGS:
+                best_match, score = process.extractOne(clean_tag, ALL_UNIQUE_TAGS, scorer=fuzz.ratio)
+                if score >= 75:
+                    print(f"✅ Validated Meal Tag: '{clean_tag}' -> '{best_match}'")
+                    return {"meal_tag": best_match}
+
+        dispatcher.utter_message(text=f"🛑 I don't recognize '{clean_tag}'. Give me a valid category (like 'Healthy', 'Winter').")
+        return {"meal_tag": None}
+
+
+# =============================================================================
+# SUBMIT FORM FULL MEAL (Generazione del Menu)
+# =============================================================================
+class ActionSubmitFullMeal(Action):
+    def name(self) -> Text:
+        return "action_submit_full_meal"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        meal_tag = tracker.get_slot("meal_tag")
+        
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        # 1. Filtriamo tutto il database affinché contenga il TAG SCELTO (es. "italian")
+        matches = DATASET.copy()
+        
+        def check_theme(row_tag_str):
+            try:
+                recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
+                return meal_tag in recipe_tags
+            except:
+                return False
+                
+        theme_matches = matches[matches['tags'].apply(check_theme)]
+
+        # 2. Struttura delle 5 Portate
+        # Formato: (Nome Display, [lista_tag_accettati])
+        courses = [
+            ("🥗 Appetizer", ["appetizers"]),
+            ("🍝 First Course", ["pasta", "rice"]),
+            ("🥩 Main Course", ["main-dish"]),
+            ("🍟 Side Dish", ["side-dishes"]),
+            ("🍰 Dessert", ["desserts"])
+        ]
+
+        msg = f"🍽️ **The Ultimate {meal_tag.title()} Menu** 🍽️\n\n"
+        buttons = []
+
+        # 3. Cerchiamo la ricetta migliore per ogni portata
+        for course_name, valid_course_tags in courses:
+            
+            def check_course(row_tag_str):
+                try:
+                    recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
+                    # Controlla se ALMENO UNO dei tag della portata è presente (es. pasta OPPURE rice)
+                    return any(t in recipe_tags for t in valid_course_tags)
+                except:
+                    return False
+            
+            # Filtra il database già scremato per il tema
+            course_matches = theme_matches[theme_matches['tags'].apply(check_course)]
+            
+            if not course_matches.empty:
+                # Ordina per trovare la migliore in assoluto
+                course_matches = course_matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+                top_recipe = course_matches.iloc[0]
+                
+                r_name = top_recipe['name'].title()
+                r_rate = top_recipe['rating_medio']
+                
+                # Prendo l'ID (l'indice) per creare il bottone
+                r_id = course_matches.index[0]
+                
+                msg += f"**{course_name}:** {r_name} ({r_rate}⭐)\n"
+                
+                # Creo un bottone rapido per permettere all'utente di aprire subito quella ricetta
+                buttons.append({"title": f"See {course_name.split()[1]}", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'})
+            else:
+                # Se non c'è nessuna ricetta per quella portata con quel tema
+                msg += f"**{course_name}:** -\n"
+
+        # 4. Inviamo il menu!
+        dispatcher.utter_message(text=msg)
+        if buttons:
+            dispatcher.utter_message(text="Tap a button below to get the full recipe for a specific course:", buttons=buttons)
+
+        # Pulizia slot
+        return [SlotSet("meal_tag", None)]

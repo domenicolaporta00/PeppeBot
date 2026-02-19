@@ -89,6 +89,22 @@ rules:
     - requested_slot: null
   - action: action_submit_nutrition_search
 
+- rule: Activate Full Meal Form
+  steps:
+  - intent: trigger_full_meal
+  - action: full_meal_form
+  - active_loop: full_meal_form
+
+- rule: Submit Full Meal Form
+  condition:
+  - active_loop: full_meal_form
+  steps:
+  - action: full_meal_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_submit_full_meal
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye
