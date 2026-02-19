@@ -73,6 +73,22 @@ rules:
     - requested_slot: null
   - action: action_submit_svuota_frigo
 
+- rule: Activate Nutrition Form
+  steps:
+  - intent: trigger_nutrition_search
+  - action: nutrition_search_form
+  - active_loop: nutrition_search_form
+
+- rule: Submit Nutrition Form
+  condition:
+  - active_loop: nutrition_search_form
+  steps:
+  - action: nutrition_search_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_submit_nutrition_search
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

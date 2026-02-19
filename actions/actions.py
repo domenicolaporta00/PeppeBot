@@ -803,3 +803,125 @@ class ActionSubmitSvuotaFrigo(Action):
 
         # 6. PULIZIA TOTALE (Svuota gli slot per la prossima ricerca)
         return [SlotSet("ingredient", None), SlotSet("time_limit", None), SlotSet("category", None)]
+    
+# =============================================================================
+# VALIDAZIONE FORM NUTRIZIONALE
+# =============================================================================
+class ValidateNutritionSearchForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_nutrition_search_form"
+
+    def extract_number(self, text: str):
+        numbers = re.findall(r'\d+', text)
+        if numbers:
+            return int(numbers[0])
+        return None
+
+    # 1. Calorie
+    def validate_max_calories(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        num = self.extract_number(tracker.latest_message.get("text", ""))
+        if num is None:
+            dispatcher.utter_message(text="🛑 I need a number! Please enter the max CALORIES (kcal).")
+            # Scudo: azzera i successivi
+            return {"max_calories": None, "max_carbs": None, "max_fat": None, "max_protein": None}
+        return {"max_calories": num, "max_carbs": None, "max_fat": None, "max_protein": None}
+
+    # 2. Carboidrati
+    def validate_max_carbs(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        num = self.extract_number(tracker.latest_message.get("text", ""))
+        if num is None:
+            dispatcher.utter_message(text="🛑 I need a number! Please enter the max CARBOHYDRATES (% PDV).")
+            return {"max_carbs": None, "max_fat": None, "max_protein": None}
+        return {"max_carbs": num, "max_fat": None, "max_protein": None}
+
+    # 3. Grassi
+    def validate_max_fat(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        num = self.extract_number(tracker.latest_message.get("text", ""))
+        if num is None:
+            dispatcher.utter_message(text="🛑 I need a number! Please enter the max TOTAL FAT (% PDV).")
+            return {"max_fat": None, "max_protein": None}
+        return {"max_fat": num, "max_protein": None}
+
+    # 4. Proteine
+    def validate_max_protein(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        num = self.extract_number(tracker.latest_message.get("text", ""))
+        if num is None:
+            dispatcher.utter_message(text="🛑 I need a number! Please enter the max PROTEIN (% PDV).")
+            return {"max_protein": None}
+        return {"max_protein": num}
+
+
+# =============================================================================
+# SUBMIT FORM NUTRIZIONALE (Ricerca nel DB)
+# =============================================================================
+class ActionSubmitNutritionSearch(Action):
+    def name(self) -> Text:
+        return "action_submit_nutrition_search"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # Li consideriamo "Target" invece che "Max"
+        target_cal = tracker.get_slot("max_calories")
+        target_carbs = tracker.get_slot("max_carbs")
+        target_fat = tracker.get_slot("max_fat")
+        target_protein = tracker.get_slot("max_protein")
+
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        matches = DATASET.copy()
+
+        # =========================================================
+        # CALCOLO DELLA "DISTANZA" (Errore Relativo)
+        # Più il numero è vicino a 0, più la ricetta è perfetta!
+        # Usiamo max(1, target) per evitare divisioni per zero se l'utente digita "0"
+        # =========================================================
+        matches['distance'] = (
+            abs(matches['calories'] - target_cal) / max(1, target_cal) +
+            abs(matches['carbohydrates'] - target_carbs) / max(1, target_carbs) +
+            abs(matches['total_fat'] - target_fat) / max(1, target_fat) +
+            abs(matches['protein'] - target_protein) / max(1, target_protein)
+        )
+
+        # Ordiniamo in modo CRESCENTE per distanza (il più vicino a 0 vince) 
+        # e decrescente per rating (a parità di distanza, vince la più buona)
+        matches = matches.sort_values(by=['distance', 'rating_medio'], ascending=[True, False])
+        
+        # Prendiamo le 5 ricette che si avvicinano di più all'obiettivo
+        top_matches = matches.head(5)
+
+        dispatcher.utter_message(text=f"🎯 SUCCESS! I found the recipes that best match your target macros:")
+        
+        buttons = []
+        for index, row in top_matches.iterrows():
+            r_name = row['name'].title()
+            
+            # Mostriamo i valori esatti sul bottone così l'utente vede quanto ci abbiamo azzeccato
+            c = row['calories']
+            carb = row['carbohydrates']
+            fat = row['total_fat']
+            pro = row['protein']
+            
+            label = f"{r_name} ({c}kcal | C:{carb}% | F:{fat}% | P:{pro}%)"
+            buttons.append({"title": label, "payload": f'/select_recipe{{"recipe_id":"{index}"}}'})
+        
+        dispatcher.utter_message(buttons=buttons)
+
+        # Pulizia slot
+        return [
+            SlotSet("max_calories", None), 
+            SlotSet("max_carbs", None), 
+            SlotSet("max_fat", None), 
+            SlotSet("max_protein", None)
+        ]

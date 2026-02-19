@@ -16,6 +16,7 @@ intents:
   - search_by_ingredient
   - trigger_svuota_frigo
   - inform_time
+  - trigger_nutrition_search
 
 entities:
   - recipe_name
@@ -74,6 +75,38 @@ slots:
           - active_loop: svuota_frigo_form
             requested_slot: time_limit
 
+  max_calories:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_search_form
+            requested_slot: max_calories
+
+  max_carbs:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_search_form
+            requested_slot: max_carbs
+
+  max_fat:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_search_form
+            requested_slot: max_fat
+
+  max_protein:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: nutrition_search_form
+            requested_slot: max_protein
+
 actions:
   - action_show_top_rated
   - action_search_by_name
@@ -84,6 +117,8 @@ actions:
   - action_search_by_ingredient
   - validate_svuota_frigo_form
   - action_submit_svuota_frigo
+  - validate_nutrition_search_form
+  - action_submit_nutrition_search
 
 forms:
   svuota_frigo_form:
@@ -91,6 +126,13 @@ forms:
       - ingredient
       - time_limit
       - category
+
+  nutrition_search_form:
+    required_slots:
+      - max_calories
+      - max_carbs
+      - max_fat
+      - max_protein
 
 responses:
   utter_greet:
@@ -159,6 +201,18 @@ responses:
   utter_ask_category:
     - text: "🏷️ Finally, do you want a specific category or diet? (e.g., Vegan, Spicy, Dinner. If none, just type 'none')"
   
+  utter_ask_max_calories:
+    - text: "🥗 Let's find your perfect meal! ABOUT HOW MANY CALORIES are you aiming for? (e.g., 500)"
+  
+  utter_ask_max_carbs:
+    - text: "🍞 Got it. What is your TARGET for CARBOHYDRATES? (Enter a % PDV, e.g., 30)"
+  
+  utter_ask_max_fat:
+    - text: "🥓 And what is your TARGET for TOTAL FAT? (Enter a % PDV)"
+  
+  utter_ask_max_protein:
+    - text: "🥩 Lastly, what is your TARGET for PROTEIN? (Enter a % PDV)"
+
   utter_fallback:
   - text: |
       I'm sorry, I didn't understand that. 😕

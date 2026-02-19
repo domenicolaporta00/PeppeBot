@@ -486,6 +486,18 @@ nlu:
     - [60](time_limit) min
     - about [20](time_limit) minutes
 
+- intent: trigger_nutrition_search
+  examples: |
+    - can you recommend a recipe based on nutritional values?
+    - suggest a recipe by macros
+    - find a dish based on calories and protein
+    - I need a recipe with specific nutritional limits
+    - nutrition search
+    - filter recipes by nutrition
+    - diet based recipe search
+    - recommend a meal by nutritional values
+    - search by calories and carbs
+
 - lookup: ingredient
   examples: |
     lookup/lista_ingredienti.txt
