@@ -105,6 +105,11 @@ rules:
     - requested_slot: null
   - action: action_submit_full_meal
 
+- rule: Rispondi con una ricetta casuale
+  steps:
+  - intent: random_recipe
+  - action: action_random_recipe
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

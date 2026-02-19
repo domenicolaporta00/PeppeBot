@@ -510,6 +510,18 @@ nlu:
     - complete dinner plan
     - full course
 
+- intent: random_recipe
+  examples: |
+    - surprise me with a recipe
+    - give me a random dish
+    - suggest a random recipe
+    - cook something unexpected
+    - random meal idea
+    - give me a surprise recipe
+    - pick a random recipe for me
+    - I want to cook something random
+    - random recipe please
+
 - lookup: ingredient
   examples: |
     lookup/lista_ingredienti.txt

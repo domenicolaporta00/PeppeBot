@@ -1045,3 +1045,28 @@ class ActionSubmitFullMeal(Action):
 
         # Pulizia slot
         return [SlotSet("meal_tag", None)]
+
+class ActionRandomRecipe(Action):
+    def name(self) -> Text:
+        return "action_random_recipe"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        # Seleziona una ricetta casuale
+        random_recipe = DATASET.sample(n=1).iloc[0]
+
+        r_name = random_recipe['name'].title()
+        r_rate = random_recipe['rating_medio']
+        r_id = random_recipe.name  # L'indice è l'ID della ricetta
+
+        msg = f"🎲 **Random Recipe:** {r_name} ({r_rate}⭐)\n\n"
+        buttons = [{"title": "See Full Recipe", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'}]
+
+        dispatcher.utter_message(text=msg, buttons=buttons)
+        return []

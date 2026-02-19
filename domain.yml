@@ -18,6 +18,7 @@ intents:
   - inform_time
   - trigger_nutrition_search
   - trigger_full_meal
+  - random_recipe
 
 entities:
   - recipe_name
@@ -130,6 +131,7 @@ actions:
   - action_submit_nutrition_search
   - validate_full_meal_form
   - action_submit_full_meal
+  - action_random_recipe
 
 forms:
   svuota_frigo_form:
