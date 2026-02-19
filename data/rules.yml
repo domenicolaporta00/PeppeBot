@@ -57,6 +57,22 @@ rules:
   - intent: search_by_ingredient
   - action: action_search_by_ingredient
 
+- rule: Attiva Svuota Frigo Form
+  steps:
+  - intent: trigger_svuota_frigo
+  - action: svuota_frigo_form
+  - active_loop: svuota_frigo_form
+
+- rule: Invia Svuota Frigo Form
+  condition:
+  - active_loop: svuota_frigo_form
+  steps:
+  - action: svuota_frigo_form
+  - active_loop: null
+  - slot_was_set:
+    - requested_slot: null
+  - action: action_submit_svuota_frigo
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

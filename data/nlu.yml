@@ -467,6 +467,25 @@ nlu:
     - search for recipes containing [sour cream](ingredient) and [green onions](ingredient)
     - [puff pastry](ingredient), [spinach](ingredient), [feta cheese](ingredient)
 
+- intent: trigger_svuota_frigo
+  examples: |
+    - what can I cook today?
+    - recommend me a recipe
+    - I don't know what to make
+    - empty fridge mode
+    - suggest a meal
+    - give me an idea for dinner
+    - help me decide what to cook
+    - inspire me with a recipe
+
+- intent: inform_time
+  examples: |
+    - I have [30](time_limit) minutes
+    - [15](time_limit) mins
+    - I can cook for [45](time_limit) minutes
+    - [60](time_limit) min
+    - about [20](time_limit) minutes
+
 - lookup: ingredient
   examples: |
     lookup/lista_ingredienti.txt

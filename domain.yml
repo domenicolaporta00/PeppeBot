@@ -14,6 +14,8 @@ intents:
   - ask_nutrition
   - ask_cooking_time
   - search_by_ingredient
+  - trigger_svuota_frigo
+  - inform_time
 
 entities:
   - recipe_name
@@ -21,6 +23,7 @@ entities:
   - category
   - nutrient
   - ingredient
+  - time_limit
 
 slots:
   recipe_name:
@@ -35,12 +38,6 @@ slots:
       - type: from_entity
         entity: recipe_id
 
-  category:
-    type: list
-    mappings:
-      - type: from_entity
-        entity: category
-
   nutrient:
     type: text
     mappings:
@@ -52,6 +49,30 @@ slots:
     mappings:
       - type: from_entity
         entity: ingredient
+      - type: from_text
+        conditions:
+          - active_loop: svuota_frigo_form
+            requested_slot: ingredient
+
+  category:
+    type: list
+    mappings:
+      - type: from_entity
+        entity: category
+      - type: from_text
+        conditions:
+          - active_loop: svuota_frigo_form
+            requested_slot: category
+
+  time_limit:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: time_limit
+      - type: from_text
+        conditions:
+          - active_loop: svuota_frigo_form
+            requested_slot: time_limit
 
 actions:
   - action_show_top_rated
@@ -61,6 +82,15 @@ actions:
   - action_ask_nutrition
   - action_ask_cooking_time
   - action_search_by_ingredient
+  - validate_svuota_frigo_form
+  - action_submit_svuota_frigo
+
+forms:
+  svuota_frigo_form:
+    required_slots:
+      - ingredient
+      - time_limit
+      - category
 
 responses:
   utter_greet:
@@ -120,6 +150,15 @@ responses:
 
       They created this App to bring quality products directly to your home, offering exclusive discounts and custom shopping lists. 🛒
 
+  utter_ask_ingredient:
+    - text: "🥦 Let's empty that fridge! First, what ingredients do you want to use? (e.g., chicken, onion, eggs)"
+  
+  utter_ask_time_limit:
+    - text: "⏱️ Got it. How many minutes do you have to cook? (e.g., 30)"
+  
+  utter_ask_category:
+    - text: "🏷️ Finally, do you want a specific category or diet? (e.g., Vegan, Spicy, Dinner. If none, just type 'none')"
+  
   utter_fallback:
   - text: |
       I'm sorry, I didn't understand that. 😕

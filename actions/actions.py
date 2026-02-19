@@ -6,13 +6,16 @@
 
 
 import ast
+import re
 from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker  # type: ignore
 from rasa_sdk.executor import CollectingDispatcher  # type: ignore
 from rasa_sdk.events import SlotSet  # type: ignore
 from rasa_sdk.events import FollowupAction  # type: ignore
+from rasa_sdk.forms import FormValidationAction  # type: ignore
+from rasa_sdk.types import DomainDict  # type: ignore
 import pandas as pd  # type: ignore
-from fuzzywuzzy import process  # type: ignore
+from fuzzywuzzy import process, fuzz  # type: ignore
 
 PERCORSO_DATASET = 'dataset/dataset_svuotafrigo_finale.csv'  # Assicurati che il percorso sia corretto
 ALL_UNIQUE_TAGS = []
@@ -621,3 +624,182 @@ class ActionSearchByIngredient(Action):
         
         # Resetta lo slot
         return [SlotSet("ingredient", None)]
+    
+class ValidateSvuotaFrigoForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_svuota_frigo_form"
+
+    # ==========================================
+    # 1. VALIDAZIONE INGREDIENTI
+    # ==========================================
+    def validate_ingredient(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        
+        extracted = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] == "ingredient"]
+        
+        if not extracted:
+            text = tracker.latest_message.get("text", "").lower()
+            for word in ["i have ", "use ", "some ", "only ", "want "]:
+                text = text.replace(word, "")
+            extracted = [i.strip() for i in text.replace(" and ", ",").split(",") if len(i.strip()) > 1]
+
+        if not extracted:
+            dispatcher.utter_message(text="🛑 I didn't catch anything! Please tell me the INGREDIENTS you want to use.")
+            # SCUDO: Resettiamo tutto il resto se fallisce
+            return {"ingredient": None, "time_limit": None, "category": None}
+
+        valid_ingredients = []
+        for item in extracted:
+            item_clean = item.lower()
+            if item_clean in ALL_UNIQUE_INGREDIENTS:
+                valid_ingredients.append(item_clean)
+            else:
+                if ALL_UNIQUE_INGREDIENTS:
+                    best_match, score = process.extractOne(item_clean, ALL_UNIQUE_INGREDIENTS, scorer=fuzz.ratio)
+                    if score >= 80:
+                        print(f"✅ Validated Ing: '{item_clean}' -> '{best_match}'")
+                        valid_ingredients.append(best_match)
+
+        if not valid_ingredients:
+            dispatcher.utter_message(text="🛑 I don't recognize those as ingredients. Please give me valid food items (e.g., chicken, eggs).")
+            # SCUDO: Resettiamo tutto il resto se fallisce
+            return {"ingredient": None, "time_limit": None, "category": None}
+
+        # SUCCESSO: Salviamo gli ingredienti ma azzeriamo il tempo e la categoria per impedire salti!
+        return {"ingredient": valid_ingredients, "time_limit": None, "category": None}
+
+    # ==========================================
+    # 2. VALIDAZIONE TEMPO
+    # ==========================================
+    def validate_time_limit(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        
+        text = tracker.latest_message.get("text", "").lower()
+        numbers = re.findall(r'\d+', text)
+        
+        if not numbers:
+            dispatcher.utter_message(text="🛑 I need a number! How many MINUTES do you have?")
+            # SCUDO: Se ha digitato roba a caso (es. "vegan"), impediamo che Rasa lo salvi come categoria
+            return {"time_limit": None, "category": None}
+            
+        # SUCCESSO: Salviamo il tempo, ma azzeriamo la categoria per forzare il passaggio 3
+        return {"time_limit": int(numbers[0]), "category": None}
+
+    # ==========================================
+    # 3. VALIDAZIONE CATEGORIE / TAGS
+    # ==========================================
+    def validate_category(
+        self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
+    ) -> Dict[Text, Any]:
+        
+        text = tracker.latest_message.get("text", "").lower()
+        
+        if text in ["none", "nothing", "no", "skip", "any", "i don't care"]:
+            return {"category": ["none"]}
+
+        extracted = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] == "category"]
+        if not extracted:
+            extracted = [c.strip() for c in text.replace(" and ", ",").split(",") if len(c.strip()) > 1]
+
+        if not extracted:
+            dispatcher.utter_message(text="🛑 I didn't catch anything. Please provide a tag (like 'Vegan') or type 'none'.")
+            return {"category": None}
+
+        valid_tags = []
+        for item in extracted:
+            item_clean = item.lower()
+            if item_clean in ALL_UNIQUE_TAGS:
+                valid_tags.append(item_clean)
+            else:
+                if ALL_UNIQUE_TAGS:
+                    best_match, score = process.extractOne(item_clean, ALL_UNIQUE_TAGS, scorer=fuzz.ratio)
+                    if score >= 75:
+                        print(f"✅ Validated Tag: '{item_clean}' -> '{best_match}'")
+                        valid_tags.append(best_match)
+
+        if not valid_tags:
+            dispatcher.utter_message(text="🛑 I don't recognize those tags. Give me a valid category (like 'Easy', 'Winter') or type 'none'.")
+            return {"category": None}
+
+        return {"category": valid_tags}
+
+class ActionSubmitSvuotaFrigo(Action):
+    def name(self) -> Text:
+        return "action_submit_svuota_frigo"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # 1. Recuperiamo i dati (già perfetti e validati dalla Form!)
+        ingredients = tracker.get_slot("ingredient")
+        time_limit = tracker.get_slot("time_limit")
+        categories = tracker.get_slot("category")
+
+        if DATASET is None:
+            dispatcher.utter_message(text="⚠️ Database Error.")
+            return []
+
+        matches = DATASET.copy()
+
+        # 2. FILTRO TEMPO (Lo facciamo per primo perché è il calcolo più veloce)
+        if time_limit:
+            matches = matches[matches['minutes'] <= int(time_limit)]
+
+        # 3. FILTRO INGREDIENTI (Ricerca Esatta nell'Array)
+        if not matches.empty and ingredients:
+            def check_ingredients(row_ing_str):
+                try:
+                    # Converte la stringa "['olive', 'garlic']" in una VERA lista Python
+                    recipe_ings = [x.lower().strip() for x in ast.literal_eval(row_ing_str)]
+                    
+                    # Controlla che TUTTI gli ingredienti cercati siano nella lista
+                    for search_item in ingredients:
+                        # Qui sta la magia: "olive" == "olive" (True), "olive" == "olive oil" (False)
+                        if search_item.lower() not in recipe_ings:
+                            return False
+                    return True
+                except:
+                    return False
+                    
+            matches = matches[matches['ingredients'].apply(check_ingredients)]
+
+        # 4. FILTRO CATEGORIE / TAGS (Ricerca Esatta nell'Array)
+        if not matches.empty and categories and categories != ["none"]:
+            def check_tags(row_tag_str):
+                try:
+                    # Stessa logica degli ingredienti per evitare che "vegan" matchi con "non-vegan"
+                    recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
+                    for cat in categories:
+                        if cat.lower() not in recipe_tags:
+                            return False
+                    return True
+                except:
+                    return False
+                    
+            matches = matches[matches['tags'].apply(check_tags)]
+
+        # --- 5. MOSTRA I RISULTATI ---
+        ing_display = ", ".join(ingredients) if ingredients else "any ingredients"
+        cat_display = "" if not categories or categories == ["none"] else f" and tags ({', '.join(categories)})"
+        
+        if not matches.empty:
+            matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
+            count = len(matches)
+            top_matches = matches.head(5)
+
+            dispatcher.utter_message(text=f"🎉 SUCCESS! I found {count} recipes using **{ing_display}**, under **{time_limit} mins**{cat_display}:")
+            
+            buttons = []
+            for index, row in top_matches.iterrows():
+                r_name = row['name'].title()
+                buttons.append({"title": f"{r_name} ({row['minutes']}m)", "payload": f'/select_recipe{{"recipe_id":"{index}"}}'})
+            
+            dispatcher.utter_message(buttons=buttons)
+        else:
+            dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find any recipe combining **{ing_display}** under **{time_limit} minutes**{cat_display}. The fridge is too empty!")
+
+        # 6. PULIZIA TOTALE (Svuota gli slot per la prossima ricerca)
+        return [SlotSet("ingredient", None), SlotSet("time_limit", None), SlotSet("category", None)]
