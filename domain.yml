@@ -262,7 +262,28 @@ responses:
     - text: "🥩 Lastly, what is your TARGET for PROTEIN? (Enter a % PDV)"
 
   utter_ask_meal_tag:
-    - text: "🍽️ Awesome! Let's plan a Full Course Meal. What THEME or TAG do you want for the menu? (e.g., Italian, Vegan, Summer)"
+    - text: "🍽️ Awesome! Let's plan a Full Course Meal. What THEME or TAG do you want for the menu?"
+      buttons:
+        - title: "🍕 Italian"
+          payload: "italian"
+        - title: "🌮 Mexican"
+          payload: "mexican"
+        - title: "🥢 Asian"
+          payload: "asian"
+        - title: "🍛 Indian"
+          payload: "indian"
+        - title: "🥑 Vegan"
+          payload: "vegan"
+        - title: "🥗 Healthy"
+          payload: "healthy"
+        - title: "🧀 Comfort Food"
+          payload: "comfort-food"
+        - title: "🕯️ Romantic"
+          payload: "romantic"
+        - title: "☀️ Summer"
+          payload: "summer"
+        - title: "❄️ Winter"
+          payload: "winter"
 
   utter_form_stopped:
     - text: "🛑 No problem, chef! I've cancelled the current request. What would you like to do next?"
