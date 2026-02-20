@@ -73,6 +73,16 @@ rules:
     - requested_slot: null
   - action: action_submit_svuota_frigo
 
+- rule: Stop Svuota Frigo Form
+  condition:
+  - active_loop: svuota_frigo_form
+  steps:
+  - intent: stop
+  - action: action_deactivate_loop
+  - active_loop: null
+  - action: utter_form_stopped
+  - action: action_reset_svuota_frigo_form
+
 - rule: Activate Nutrition Form
   steps:
   - intent: trigger_nutrition_search
@@ -89,6 +99,16 @@ rules:
     - requested_slot: null
   - action: action_submit_nutrition_search
 
+- rule: Stop Nutrition Form
+  condition:
+  - active_loop: nutrition_search_form
+  steps:
+  - intent: stop
+  - action: action_deactivate_loop
+  - active_loop: null
+  - action: utter_form_stopped
+  - action: action_reset_nutrition_search_form
+
 - rule: Activate Full Meal Form
   steps:
   - intent: trigger_full_meal
@@ -104,6 +124,16 @@ rules:
   - slot_was_set:
     - requested_slot: null
   - action: action_submit_full_meal
+
+- rule: Stop Full Meal Form
+  condition:
+  - active_loop: full_meal_form
+  steps:
+  - intent: stop
+  - action: action_deactivate_loop
+  - active_loop: null
+  - action: utter_form_stopped
+  - action: action_reset_full_meal_form
 
 - rule: Rispondi con una ricetta casuale
   steps:

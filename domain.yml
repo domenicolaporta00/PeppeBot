@@ -19,6 +19,7 @@ intents:
   - trigger_nutrition_search
   - trigger_full_meal
   - random_recipe
+  - stop
 
 entities:
   - recipe_name
@@ -31,88 +32,115 @@ entities:
 slots:
   recipe_name:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: recipe_name
 
   recipe_id:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: recipe_id
 
   nutrient:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: nutrient
 
   ingredient:
     type: list
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: ingredient
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: svuota_frigo_form
             requested_slot: ingredient
 
   category:
     type: list
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: category
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: svuota_frigo_form
             requested_slot: category
 
   time_limit:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_entity
         entity: time_limit
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: svuota_frigo_form
             requested_slot: time_limit
 
   max_calories:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: nutrition_search_form
             requested_slot: max_calories
 
   max_carbs:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: nutrition_search_form
             requested_slot: max_carbs
 
   max_fat:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: nutrition_search_form
             requested_slot: max_fat
 
   max_protein:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: nutrition_search_form
             requested_slot: max_protein
 
   meal_tag:
     type: text
+    influence_conversation: false
     mappings:
       - type: from_text
+        not_intent:
+          - stop
         conditions:
           - active_loop: full_meal_form
             requested_slot: meal_tag
@@ -132,6 +160,9 @@ actions:
   - validate_full_meal_form
   - action_submit_full_meal
   - action_random_recipe
+  - action_reset_svuota_frigo_form
+  - action_reset_nutrition_search_form
+  - action_reset_full_meal_form
 
 forms:
   svuota_frigo_form:
@@ -233,6 +264,9 @@ responses:
   utter_ask_meal_tag:
     - text: "🍽️ Awesome! Let's plan a Full Course Meal. What THEME or TAG do you want for the menu? (e.g., Italian, Vegan, Summer)"
 
+  utter_form_stopped:
+    - text: "🛑 No problem, chef! I've cancelled the current request. What would you like to do next?"
+  
   utter_fallback:
   - text: |
       I'm sorry, I didn't understand that. 😕

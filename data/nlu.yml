@@ -43,13 +43,7 @@ nlu:
     - that is all, thanks
     - thanks, bye
     - thank you and goodbye
-    - i have to go
     - i am leaving now
-    - end chat
-    - stop
-    - quit
-    - i am done
-    - no more, thanks
 
 - intent: help
   examples: |
@@ -521,6 +515,19 @@ nlu:
     - pick a random recipe for me
     - I want to cook something random
     - random recipe please
+
+- intent: stop
+  examples: |
+    - stop
+    - exit
+    - close
+    - cancel
+    - abort
+    - nevermind
+    - I changed my mind
+    - stop it
+    - quit
+    - forget it
 
 - lookup: ingredient
   examples: |

@@ -635,6 +635,11 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
     def validate_ingredient(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
+
+        intent = tracker.latest_message.get("intent", {}).get("name")
+        text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"ingredient": None}
         
         extracted = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] == "ingredient"]
         
@@ -676,7 +681,11 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"time_limit": None}
+        
         numbers = re.findall(r'\d+', text)
         
         if not numbers:
@@ -694,8 +703,11 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
-        
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"category": None}
+                
         if text in ["none", "nothing", "no", "skip", "any", "i don't care"]:
             return {"category": ["none"]}
 
@@ -821,6 +833,12 @@ class ValidateNutritionSearchForm(FormValidationAction):
     def validate_max_calories(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
+        
+        intent = tracker.latest_message.get("intent", {}).get("name")
+        text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"max_calories": None}
+        
         num = self.extract_number(tracker.latest_message.get("text", ""))
         if num is None:
             dispatcher.utter_message(text="🛑 I need a number! Please enter the max CALORIES (kcal).")
@@ -832,6 +850,12 @@ class ValidateNutritionSearchForm(FormValidationAction):
     def validate_max_carbs(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
+        
+        intent = tracker.latest_message.get("intent", {}).get("name")
+        text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"max_carbs": None}
+        
         num = self.extract_number(tracker.latest_message.get("text", ""))
         if num is None:
             dispatcher.utter_message(text="🛑 I need a number! Please enter the max CARBOHYDRATES (% PDV).")
@@ -842,6 +866,12 @@ class ValidateNutritionSearchForm(FormValidationAction):
     def validate_max_fat(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
+        
+        intent = tracker.latest_message.get("intent", {}).get("name")
+        text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"max_fat": None}
+        
         num = self.extract_number(tracker.latest_message.get("text", ""))
         if num is None:
             dispatcher.utter_message(text="🛑 I need a number! Please enter the max TOTAL FAT (% PDV).")
@@ -852,6 +882,12 @@ class ValidateNutritionSearchForm(FormValidationAction):
     def validate_max_protein(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
+        
+        intent = tracker.latest_message.get("intent", {}).get("name")
+        text = tracker.latest_message.get("text", "").lower()
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"max_protein": None}
+        
         num = self.extract_number(tracker.latest_message.get("text", ""))
         if num is None:
             dispatcher.utter_message(text="🛑 I need a number! Please enter the max PROTEIN (% PDV).")
@@ -937,8 +973,11 @@ class ValidateFullMealForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
-        
+        if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
+            return {"meal_tag": None}
+                
         # Pulizia testo
         for word in ["i want ", "make it ", "theme ", "diet "]:
             text = text.replace(word, "")
@@ -1070,3 +1109,45 @@ class ActionRandomRecipe(Action):
 
         dispatcher.utter_message(text=msg, buttons=buttons)
         return []
+
+class ActionResetSvuotaFrigoForm(Action):
+    def name(self) -> Text:
+        return "action_reset_svuota_frigo_form"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # Resetta tutti gli slot della form
+        return [
+            SlotSet("ingredient", None),
+            SlotSet("time_limit", None),
+            SlotSet("category", None)
+        ]
+    
+class ActionResetNutritionSearchForm(Action):
+    def name(self) -> Text:
+        return "action_reset_nutrition_search_form"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # Resetta tutti gli slot della form
+        return [
+            SlotSet("max_calories", None), 
+            SlotSet("max_carbs", None), 
+            SlotSet("max_fat", None), 
+            SlotSet("max_protein", None)
+        ]
+    
+class ActionResetFullMealForm(Action):
+    def name(self) -> Text:
+        return "action_reset_full_meal_form"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
+        # Resetta lo slot del tema
+        return [SlotSet("meal_tag", None)]
