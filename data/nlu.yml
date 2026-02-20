@@ -47,6 +47,7 @@ nlu:
 
 - intent: help
   examples: |
+    - help
     - what can you do?
     - how does this work?
     - I need help
@@ -487,6 +488,7 @@ nlu:
     - find a dish based on calories and protein
     - I need a recipe with specific nutritional limits
     - nutrition search
+    - Nutrition search
     - filter recipes by nutrition
     - diet based recipe search
     - recommend a meal by nutritional values
