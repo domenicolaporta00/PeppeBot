@@ -111,7 +111,6 @@ nlu:
 
 - intent: search_by_name
   examples: |
-    # --- FRASI DIRETTE (Voglio cucinare...) ---
     - I want to cook [Carbonara](recipe_name)
     - I want to make [Lasagna](recipe_name)
     - I want to prepare [Sushi](recipe_name)
@@ -122,8 +121,6 @@ nlu:
     - Let's cook [Pizza Margherita](recipe_name)
     - I want to cook [Risotto alla Milanese](recipe_name)
     - I need to make [Apple Pie](recipe_name)
-    
-    # --- RICHIESTA RICETTA (Recipe for...) ---
     - Recipe for [Cheesecake](recipe_name)
     - Do you have the recipe for [Brownies](recipe_name)?
     - Give me the recipe for [Guacamole](recipe_name)
@@ -134,8 +131,6 @@ nlu:
     - Get me the recipe for [Pancakes](recipe_name)
     - Recipe for [Tomato Sauce](recipe_name)
     - Recipe for [Fried Rice](recipe_name)
-
-    # --- COME SI FA (How to...) ---
     - How do I make [Carbonara](recipe_name)?
     - How to cook [Lobster](recipe_name)
     - How to prepare [Gazpacho](recipe_name)
@@ -145,8 +140,6 @@ nlu:
     - How do you bake [Muffins](recipe_name)?
     - Teach me to cook [Paella](recipe_name)
     - How to make [Caesar Salad](recipe_name)
-
-    # --- NOMI LUNGHI E COMPLESSI (Composite Entities) ---
     - Find [Spicy Banana Bread](recipe_name)
     - I want to cook [Homebakes Knock Off Beef Stew And Biscuits](recipe_name)
     - Search for [The Best Banana Bread Or Muffins](recipe_name)
@@ -167,8 +160,6 @@ nlu:
     - Find [Grilled Salmon with Asparagus](recipe_name)
     - Cook [Creamy Mushroom Risotto with Truffle Oil](recipe_name)
     - Recipe for [Slow Cooker Pulled Pork Sandwiches](recipe_name)
-
-    # --- RICERCA SEMPLICE (Search/Find + Nome Piatto) ---
     - Search for [Burger](recipe_name)
     - Find [Tacos](recipe_name)
     - Search [Ramen](recipe_name)
@@ -184,7 +175,6 @@ nlu:
     - Search [Nachos](recipe_name)
     - Find [Burrito](recipe_name)
     - Search [Couscous](recipe_name)
-
     - i want to cook [banana bread](recipe_name)
     - recipe for [carbonara](recipe_name)
     - how do i make [lasagna](recipe_name)
@@ -200,12 +190,10 @@ nlu:
     - recipe for [brownies](recipe_name)
     - i want to prepare [salad](recipe_name)
     - find [pasta](recipe_name)
-
     - I want to cook [Lemon Buttercream Pancakes With Blueberries](recipe_name)
     - I want to cook [Blueberry Pancakes Milk Free Egg Free](recipe_name)
     - recipe for [Lemon Buttercream Pancakes With Blueberries](recipe_name)
     - give me the recipe for [Blueberry Pancakes Milk Free Egg Free](recipe_name)
-
     - recipe for [Super Long Recipe Name With Many Adjectives](recipe_name)
     - I want to make [Chicken Breast With Sour Cream And Mushroom Sauce](recipe_name)
     - find [Whole Wheat Pasta With Spinach And Garlic Oil](recipe_name)
@@ -220,7 +208,6 @@ nlu:
 
 - intent: search_by_category
   examples: |
-    # --- STRUTTURA: I want [TAG] food/recipes ---
     - I want [vegan](category) food
     - I want [italian](category) food
     - I want [chinese](category) food
@@ -241,8 +228,6 @@ nlu:
     - I want [thai](category) food
     - I want [japanese](category) food
     - I want [french](category) food
-
-    # --- STRUTTURA: Find/Search [TAG] recipes ---
     - Find [easy](category) recipes
     - Search for [quick](category) recipes
     - Find [dessert](category) recipes
@@ -263,8 +248,6 @@ nlu:
     - Search for [fish](category) recipes
     - Find [pork](category) recipes
     - Search for [vegetable](category) recipes
-
-    # --- STRUTTURA: Something [TAG] / Ideas ---
     - I want something [sweet](category)
     - I want something [spicy](category)
     - I want something [salty](category)
@@ -281,8 +264,6 @@ nlu:
     - Dishes for [romantic](category) dinner
     - Something [inexpensive](category)
     - Something [fast](category)
-    
-    # --- STRUTTURA: Filtri specifici (Time, Diet, Type) ---
     - Recipes under [30-minutes-or-less](category)
     - Dishes in [15-minutes-or-less](category)
     - Food taking [4-hours-or-less](category)
@@ -301,15 +282,11 @@ nlu:
     - Find [beverages](category)
     - Search [sauces](category)
     - I want [stews](category)
-
-    # --- STRUTTURA: Refusi e Jolly (per testare la posizione) ---
     - I want [vegam](category) food
     - Find [winte](category) recipes
     - I want [chiken](category) dishes
     - Search for [diabetc](category) food
     - I need [gltn-free](category) ideas
-    
-    # Per input multipli
     - I want [vegan](category) [italian](category) food
     - find [easy](category) [dinner](category) recipes
     - search for [spicy](category) [mexican](category) dishes
@@ -328,7 +305,6 @@ nlu:
 
 - intent: ask_nutrition
   examples: |
-    # --- DOMANDE GENERALI (Tutti i valori) ---
     - nutritional info for [Lasagna](recipe_name)
     - nutrition facts for [Tiramisu](recipe_name)
     - tell me the nutrition of [burger](recipe_name)
@@ -340,8 +316,6 @@ nlu:
     - nutrition [banana bread](recipe_name)
     - show me values for [roasted chicken](recipe_name)
     - nutritional values of [sushi](recipe_name)
-    
-    # --- DOMANDE SU NUTRIENTI SPECIFICI (Misto Maiuscole/Minuscole) ---
     - How many [calories](nutrient) in [Carbonara](recipe_name)?
     - how much [sugar](nutrient) is in [apple pie](recipe_name)?
     - [protein](nutrient) content of [chicken salad](recipe_name)
@@ -365,7 +339,6 @@ nlu:
 
 - intent: ask_cooking_time
   examples: |
-    # --- DOMANDE DIRETTE (How long...) ---
     - how long to cook [Carbonara](recipe_name)?
     - how long does it take to make [Lasagna](recipe_name)?
     - how long for [Pizza](recipe_name)?
@@ -376,8 +349,6 @@ nlu:
     - how long for [Roasted Chicken](recipe_name)?
     - how long does [Beef Stew](recipe_name) take?
     - how long to cook [Spaghetti Bolognese](recipe_name)?
-    
-    # --- DOMANDE SUI MINUTI/TEMPO ---
     - preparation time for [Apple Pie](recipe_name)
     - cooking time [Burger](recipe_name)
     - how many minutes for [Pancakes](recipe_name)?
@@ -393,8 +364,6 @@ nlu:
     - [Omelette](recipe_name) time
     - time required for [Waffles](recipe_name)
     - total time for [Fish and Chips](recipe_name)
-
-    # --- NOMI LUNGHI E COMPLESSI (Fondamentale per la robustezza) ---
     - how long to cook [Creamy Mushroom Risotto with Truffle Oil](recipe_name)?
     - time for [Spicy Chicken Wings with Blue Cheese Sauce](recipe_name)
     - how many minutes for [Slow Cooker Pulled Pork Sandwiches](recipe_name)?
@@ -413,8 +382,6 @@ nlu:
     - time to prepare [Avocado Toast with Poached Egg](recipe_name)
     - how long to make [Traditional Japanese Miso Soup](recipe_name)?
     - duration for [Honey Glazed Ham with Pineapple](recipe_name)
-
-    # --- MINUSCOLE E VARIANTI (Anti-Overfitting) ---
     - time for [banana bread](recipe_name)
     - how long for [tomato soup](recipe_name)
     - cooking time [fried rice](recipe_name)
@@ -434,13 +401,10 @@ nlu:
 
 - intent: search_by_ingredient
   examples: |
-    # --- LISTE SEMPLICI ---
     - I have [chicken](ingredient) and [rice](ingredient)
     - recipes with [eggs](ingredient) and [milk](ingredient)
     - [onion](ingredient), [carrots](ingredient), [celery](ingredient)
     - use [tomatoes](ingredient) and [basil](ingredient)
-    
-    # --- NOMI COMPOSTI (Multi-word ingredients) ---
     - I have [white fish fillet](ingredient)
     - recipes using [oriental sesame oil](ingredient)
     - cook with [spanish onions](ingredient) and [hass avocado](ingredient)
@@ -453,8 +417,6 @@ nlu:
     - [red bell pepper](ingredient), [yellow onion](ingredient) and [ground beef](ingredient)
     - [extra virgin olive oil](ingredient) and [balsamic vinegar](ingredient)
     - [boneless skinless chicken breast](ingredient)
-    
-    # --- FRASI DISCORSIVE CON LISTE ---
     - what can I cook with [heavy cream](ingredient), [parmesan cheese](ingredient) and [butter](ingredient)?
     - find a dish with [brown rice](ingredient) and [black beans](ingredient)
     - I have some [leftover chicken](ingredient) and [bbq sauce](ingredient)
