@@ -480,6 +480,31 @@ nlu:
     - I want to cook something random
     - random recipe please
 
+- intent: easter_egg_bot_inutile
+  examples: |
+    - non capisci niente
+    - sei stupido
+    - sei inutile
+    - non servi a nulla
+    - voglio parlare con un operatore
+    - fammi parlare con una persona vera
+    - non sei molto utile
+    - non sei intelligente
+    - sei un robot stupido
+    - sei un assistente virtuale inutile
+
+- intent: easter_egg_ananas_pizza
+  examples: |
+    - i love pineapple pizza
+    - pineapple on pizza is the best
+    - pineapple pizza is delicious
+    - pineapple pizza is amazing
+    - pineapple pizza is the best food ever
+    - i can't live without pineapple pizza
+    - pineapple pizza is my favorite
+    - i crave pineapple pizza all the time
+    - pineapple pizza is the only pizza i like
+
 - intent: stop
   examples: |
     - stop
@@ -493,13 +518,11 @@ nlu:
     - quit
     - forget it
 
-- lookup: ingredient
-  examples: |
-    lookup/lista_ingredienti.txt
+# - lookup: ingredient
+#   examples: lookup/lista_ingredienti.txt
 
-- lookup: category
-  examples: |
-    lookup/lista_tags.txt
+# - lookup: category
+#   examples: lookup/lista_tags.txt
 
 - synonym: calories
   examples: |

@@ -17,12 +17,12 @@ from rasa_sdk.types import DomainDict  # type: ignore
 import pandas as pd  # type: ignore
 from fuzzywuzzy import process, fuzz  # type: ignore
 
-PERCORSO_DATASET = 'dataset/dataset_svuotafrigo_finale.csv'  # Assicurati che il percorso sia corretto
+PERCORSO_DATASET = 'dataset/dataset_svuotafrigo_finale.csv'
 ALL_UNIQUE_TAGS = []
 ALL_UNIQUE_INGREDIENTS = []
 DATASET = None
 
-# Carichiamo il dataset una volta sola all'avvio
+# Caricamento del dataset
 try:
     print(f"📂 Caricamento dataset da: {PERCORSO_DATASET}")
     DATASET = pd.read_csv(PERCORSO_DATASET)
@@ -50,7 +50,7 @@ try:
     ALL_UNIQUE_TAGS = list(all_tags_set)
     print(f"✅ Tag indicizzati: {len(ALL_UNIQUE_TAGS)}")
 
-    # --- 2. INDICIZZAZIONE INGREDIENTI (NUOVO) ---
+    # --- 2. INDICIZZAZIONE INGREDIENTI ---
     print("🔄 Indicizzazione degli INGREDIENTI...")
     all_ing_set = set()
     for ing_str in DATASET['ingredients'].dropna():
@@ -91,7 +91,7 @@ class ActionShowTopRated(Action):
         message = "⭐ **Here are the Top 5 Recipes from GreenMarket:**\n\n"
         
         for index, row in top_recipes.iterrows():
-            name = row['name'].title() # Mette le maiuscole carine
+            name = row['name'].title() # Mette le maiuscole a tutte le parole
             rating = row['rating_medio']
             votes = int(row['num_voti'])
             minutes = int(row['minutes'])
@@ -124,8 +124,7 @@ class ActionSearchByName(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        # 1. Ricerca "Larga" (Partial Match) - Come volevi tu
-        # Se cerco "Bread", trova "Banana Bread", "Bread", "Garlic Bread".
+        # 1. Ricerca tutte le ricette che contengono recipe_name
         matches = DATASET[DATASET['name'].str.contains(recipe_name, case=False, na=False, regex=False)]
 
         # 2. Fuzzy se vuoto
@@ -140,23 +139,19 @@ class ActionSearchByName(Action):
 
         # 3. GESTIONE RISULTATI
         if not matches.empty:
-            # Ordiniamo per qualità
+            # Ordina per qualità
             matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
-            
-            # --- ORA MOSTRIAMO SEMPRE I BOTTONI SE C'È AMBIGUITÀ ---
-            # Anche se i nomi sono uguali (es. due ricette "Bread"), avendo ID diversi
-            # li tratteremo come distinti.
             
             count = len(matches)
             top_matches = matches.head(5) # Prendiamo le prime 5
 
-            # Se c'è SOLA 1 ricetta, mostriamo direttamente i dettagli (per comodità)
+            # Se c'è SOLA 1 ricetta, mostra direttamente i dettagli
             if count == 1:
-                # Chiamiamo l'altra action "manualmente" passandogli l'ID
+                # Chiama l'altra action "manualmente" passandogli l'ID
                 unique_id = top_matches.index[0] # L'indice originale del DataFrame
                 return [SlotSet("recipe_id", str(unique_id)), FollowupAction("action_select_recipe_by_id")]
             
-            # Se ce n'è più di una (es. Bread, Banana Bread), mostriamo i bottoni
+            # Se ce n'è più di una (es. Bread, Banana Bread), mostra i bottoni
             else:
                 dispatcher.utter_message(text=f"🔍 I found {count} recipes containing **'{recipe_name}'**. Please select one:")
                 
@@ -168,8 +163,7 @@ class ActionSearchByName(Action):
                     # Titolo del bottone: "Banana Bread (4.5⭐)"
                     title = f"{r_name} ({r_rate}⭐)"
                     
-                    # PAYLOAD MAGICO: Passiamo l'ID (index), NON il nome!
-                    # Esempio: /select_recipe{"recipe_id": "452"}
+                    # Passa l'ID, non il nome, per evitare ambiguità
                     payload = f'/select_recipe{{"recipe_id":"{index}"}}'
                     
                     buttons.append({"title": title, "payload": payload})
@@ -197,14 +191,13 @@ class ActionSelectRecipeById(Action):
             return []
 
         try:
-            # Convertiamo l'ID in intero per cercare nel DataFrame
             r_id = int(recipe_id)
             
-            # Cerchiamo la riga esatta usando l'indice (iloc non va bene se l'indice non è posizionale, 
-            # ma qui usiamo .loc perché l'indice è l'ID del dataset originale)
             if r_id in DATASET.index:
+                # Estrae la riga dall'ID
                 row = DATASET.loc[r_id]
                 
+                # Formatta il messaggio
                 r_name = row['name'].title()
                 r_time = row['minutes']
                 r_rate = row['rating_medio']
@@ -229,7 +222,7 @@ class ActionSelectRecipeById(Action):
         except ValueError:
             dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
 
-        # Puliamo lo slot ID
+        # Pulisce lo slot ID
         return [SlotSet("recipe_id", None)]
     
 class ActionSearchByCategory(Action):
@@ -240,7 +233,6 @@ class ActionSearchByCategory(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # Ora user_input sarà una LISTA (es. ['vegan', 'italian'])
         user_input = tracker.get_slot("category")
         
         if not user_input:
@@ -251,7 +243,7 @@ class ActionSearchByCategory(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        # Assicuriamoci che sia una lista (per sicurezza)
+        # Controlla che sia una lista
         if isinstance(user_input, str):
             user_input = [user_input]
 
@@ -264,15 +256,14 @@ class ActionSearchByCategory(Action):
         found_tags = []
 
         # --- CICLO DI FILTRAGGIO ---
-        # Per ogni tag chiesto dall'utente, restringiamo i risultati
+        # Per ogni tag chiesto dall'utente, restringe i risultati
         for item in user_input:
             search_tag = item.lower().strip()
             
             # 1. Fuzzy Check per il singolo tag
-            # Se il tag non è contenuto nel DB (controllo rapido), proviamo a correggerlo
-            # Nota: qui usiamo una logica semplificata per velocità
             current_tag_matches = matches[matches['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
             
+            # Se il tag non è contenuto nel DB, prova a correggerlo usando ALL_UNIQUE_TAGS
             if current_tag_matches.empty and ALL_UNIQUE_TAGS:
                 try:
                     best_match, score = process.extractOne(search_tag, ALL_UNIQUE_TAGS)
@@ -282,20 +273,21 @@ class ActionSearchByCategory(Action):
                 except:
                     pass
             
-            # Aggiungiamo il tag (originale o corretto) alla lista dei confermati
+            # Aggiunge il tag (originale o corretto) alla lista dei confermati
             found_tags.append(search_tag)
 
             # 2. APPLICAZIONE FILTRO
             # Restringiamo il dataset `matches` solo alle righe che hanno QUESTO tag
             matches = matches[matches['tags'].str.contains(search_tag, case=False, na=False, regex=False)]
             
-            # Se a un certo punto non rimane nulla (es. "Vegan" + "Steak"), fermiamoci
+            # Se a un certo punto non rimane nulla (es. "Vegan" + "Steak"), stop
             if matches.empty:
                 break
 
         # --- RISULTATI ---
         tags_str = " + ".join([f"**{t}**" for t in found_tags])
         
+        # Se trova qualcosa, mostra i top 5 risultati ordinati per rating
         if not matches.empty:
             matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
             count = len(matches)
@@ -314,7 +306,6 @@ class ActionSearchByCategory(Action):
             dispatcher.utter_message(buttons=buttons)
         
         else:
-            # Messaggio intelligente: dice quali tag combinati non hanno prodotto risultati
             dispatcher.utter_message(text=f"😔 No recipes found matching ALL these criteria: {tags_str}. Try searching for just one of them.")
         
         # Resetta lo slot
@@ -328,7 +319,7 @@ class ActionAskNutrition(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # Prendiamo tutti i possibili slot
+        # Prende tutti gli slot possibili
         recipe_id = tracker.get_slot("recipe_id")
         recipe_name = tracker.get_slot("recipe_name")
         requested_nutrient = tracker.get_slot("nutrient")
@@ -337,32 +328,32 @@ class ActionAskNutrition(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        row = None # Qui metteremo la riga della ricetta trovata
+        row = None
 
         # --- 1. PRIORITÀ ASSOLUTA ALL'ID (Click dal Bottone) ---
-        # Se abbiamo un ID, ignoriamo il nome e prendiamo la riga esatta.
         if recipe_id:
             try:
                 r_index = int(recipe_id)
                 # Controlliamo se l'indice è valido
                 if 0 <= r_index < len(DATASET):
+                    # Recupera la riga dall'ID
                     row = DATASET.iloc[r_index]
                     print(f"✅ Trovata ricetta via ID: {r_index} -> {row['name']}")
                 else:
                     dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
                     return [SlotSet("recipe_id", None)]
             except ValueError:
-                pass # Se l'ID non è un numero, proseguiamo con la ricerca per nome
+                pass
 
-        # --- 2. RICERCA PER NOME (Solo se non abbiamo trovato via ID) ---
+        # --- 2. RICERCA PER NOME ---
         if row is None and recipe_name:
             search_term = recipe_name.lower().strip()
             
-            # Ricerca ampia (contains)
+            # Ricerca ampia
             matches = DATASET[DATASET['name'].str.contains(search_term, case=False, na=False, regex=False)]
             
             # Fuzzy fallback
-            if matches.empty and ALL_UNIQUE_TAGS:
+            if matches.empty:
                 try:
                     all_names = DATASET['name'].tolist()
                     best_match, score = process.extractOne(search_term, all_names)
@@ -373,11 +364,10 @@ class ActionAskNutrition(Action):
                     pass
 
             if not matches.empty:
-                # Ordiniamo
                 matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
                 unique_names = matches['name'].unique()
                 
-                # SE CI SONO AMBIGUITÀ -> MOSTRIAMO I BOTTONI CON L'ID
+                # Se ci sono ambiguità (es. "Bread" vs "Banana Bread"), mostra i bottoni
                 if len(unique_names) > 1:
                     dispatcher.utter_message(text=f"🔍 I found multiple recipes for **'{recipe_name}'**. Select the exact one:")
                     
@@ -386,18 +376,14 @@ class ActionAskNutrition(Action):
                     for index, r in matches.head(5).iterrows():
                         r_name = r['name'].title()
                         
-                        # --- LA MODIFICA CHIAVE È QUI ---
-                        # Il payload ora passa 'recipe_id' (che è l'indice), NON il nome.
-                        # Passiamo anche 'nutrient' per ricordarci cosa voleva sapere l'utente (cal, sugar, ecc)
                         nutr_payload = f', "nutrient": "{requested_nutrient}"' if requested_nutrient else ''
                         
-                        # Esempio: /ask_nutrition{"recipe_id": "123", "nutrient": "calories"}
                         payload = f'/ask_nutrition{{"recipe_id":"{index}"{nutr_payload}}}'
                         
                         buttons.append({"title": r_name, "payload": payload})
                     
                     dispatcher.utter_message(buttons=buttons)
-                    return [] # Ci fermiamo qui e aspettiamo il click
+                    return []
                 
                 else:
                     # Match unico
@@ -406,7 +392,7 @@ class ActionAskNutrition(Action):
                 dispatcher.utter_message(text=f"😔 I couldn't find nutritional info for **{recipe_name}**.")
                 return [SlotSet("recipe_name", None)]
 
-        # --- 3. MOSTRA RISULTATI (Se abbiamo trovato 'row') ---
+        # --- 3. MOSTRA RISULTATI (Se esiste 'row') ---
         if row is not None:
             r_name = row['name'].title()
             
@@ -418,16 +404,19 @@ class ActionAskNutrition(Action):
                 "carbohydrates": "carbohydrates", "carbs": "carbohydrates"
             }
 
+            # Se l'utente ha chiesto un nutriente specifico...
             if requested_nutrient:
                 clean_nutrient = requested_nutrient.lower().replace(" ", "_")
                 col_name = column_map.get(clean_nutrient, clean_nutrient)
 
+                # Se il nutriente esiste...
                 if col_name in row:
                     value = row[col_name]
                     unit = "kcal" if col_name == "calories" else "% PDV"
                     dispatcher.utter_message(text=f"📊 **{r_name}** contains **{value} {unit}** of {requested_nutrient}.")
                 else:
                     dispatcher.utter_message(text=f"⚠️ Info about '{requested_nutrient}' not available.")
+            # Altrimenti mostra tutto
             else:
                 msg = (
                     f"📊 **Nutritional Info for {r_name}**:\n\n"
@@ -442,7 +431,7 @@ class ActionAskNutrition(Action):
                 )
                 dispatcher.utter_message(text=msg)
 
-        # Resettiamo TUTTI gli slot per evitare conflitti futuri
+        # Resetta tutti gli slot
         return [SlotSet("recipe_name", None), SlotSet("recipe_id", None), SlotSet("nutrient", None)]
     
 class ActionAskCookingTime(Action):
@@ -453,6 +442,7 @@ class ActionAskCookingTime(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
+        # Prende tutti gli slot possibili (id se viene da bottone, altrimenti nome per ricerca)
         recipe_id = tracker.get_slot("recipe_id")
         recipe_name = tracker.get_slot("recipe_name")
         
@@ -460,9 +450,9 @@ class ActionAskCookingTime(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        row = None # Qui metteremo la riga trovata
+        row = None
 
-        # --- 1. PRIORITÀ ID (Se clicco un bottone) ---
+        # --- 1. PRIORITÀ ID ---
         if recipe_id:
             try:
                 r_index = int(recipe_id)
@@ -474,7 +464,7 @@ class ActionAskCookingTime(Action):
             except ValueError:
                 pass
 
-        # --- 2. RICERCA PER NOME (Se non ho ID) ---
+        # --- 2. RICERCA PER NOME ---
         if row is None and recipe_name:
             search_term = recipe_name.lower().strip()
             
@@ -482,7 +472,7 @@ class ActionAskCookingTime(Action):
             matches = DATASET[DATASET['name'].str.contains(search_term, case=False, na=False, regex=False)]
             
             # Fuzzy fallback
-            if matches.empty and ALL_UNIQUE_TAGS:
+            if matches.empty:
                 try:
                     all_names = DATASET['name'].tolist()
                     best_match, score = process.extractOne(search_term, all_names)
@@ -517,12 +507,12 @@ class ActionAskCookingTime(Action):
                 dispatcher.utter_message(text=f"😔 I couldn't find cooking times for **{recipe_name}**.")
                 return [SlotSet("recipe_name", None)]
 
-        # --- 3. MOSTRA RISULTATO (Se ho trovato la riga) ---
+        # --- 3. MOSTRA RISULTATO ---
         if row is not None:
             r_name = row['name'].title()
             r_minutes = row['minutes']
             
-            # Formattazione carina del tempo
+            # Formattazione della risposta
             if r_minutes > 60:
                 hours = int(r_minutes // 60)
                 mins = int(r_minutes % 60)
@@ -554,55 +544,49 @@ class ActionSearchByIngredient(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        # Assicuriamoci che sia una lista
+        # Controlla che sia una lista
         if isinstance(user_input, str):
             user_input = [user_input]
 
         print(f"🥦 Ingredienti cercati dall'utente (raw): {user_input}")
 
-        # Iniziamo col dataset completo
         matches = DATASET.copy()
         
         # Lista per tenere traccia degli ingredienti validi trovati
         found_ingredients = []
 
-        # --- CICLO DI FILTRAGGIO (Logica AND) ---
+        # --- CICLO DI FILTRAGGIO ---
         for item in user_input:
             search_item = item.lower().strip()
-            
-            # A. Fuzzy Check sul singolo ingrediente
-            # Cerchiamo se esiste nel DB o se va corretto usando ALL_UNIQUE_INGREDIENTS
-            
+                        
             # Controllo rapido se c'è già un match esatto nel subset corrente
             current_matches = matches[matches['ingredients'].str.contains(search_item, case=False, na=False, regex=False)]
             
-            # Se non troviamo nulla e abbiamo la lista globale, proviamo il Fuzzy
+            # Fuzzy fallback
             if current_matches.empty and ALL_UNIQUE_INGREDIENTS:
                 try:
                     best_match, score = process.extractOne(search_item, ALL_UNIQUE_INGREDIENTS)
-                    # Soglia leggermente più alta per ingredienti (70-75) per evitare falsi positivi strani
                     if score >= 70:
                         print(f"💡 Fuzzy Ingredient Correction: '{search_item}' -> '{best_match}'")
                         search_item = best_match
                 except:
                     pass
             
-            # Aggiungiamo l'ingrediente (originale o corretto) alla lista dei confermati
+            # Aggiunge l'ingrediente (originale o corretto)
             found_ingredients.append(search_item)
 
-            # B. APPLICAZIONE FILTRO
-            # Restringiamo il dataset `matches` alle sole righe che contengono questo ingrediente
+            # Restringe il dataset `matches` alle sole righe che contengono questo ingrediente
             matches = matches[matches['ingredients'].str.contains(search_item, case=False, na=False, regex=False)]
             
-            # Se a un certo punto non rimane nulla, fermiamoci
+            # Se a un certo punto non rimane nulla, stop
             if matches.empty:
                 break
 
         # --- RISULTATI ---
         ing_str = " + ".join([f"**{i}**" for i in found_ingredients])
         
+        # Se ha trovato qualcosa, mostra i top 5 risultati ordinati per rating
         if not matches.empty:
-            # Ordiniamo per rating
             matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
             count = len(matches)
             top_matches = matches.head(5)
@@ -618,7 +602,7 @@ class ActionSearchByIngredient(Action):
                 buttons.append({"title": title, "payload": payload})
             
             dispatcher.utter_message(buttons=buttons)
-        
+        # Altrimenti, se non trova nulla, mostra un messaggio di errore
         else:
             dispatcher.utter_message(text=f"😔 No recipes found containing ALL these ingredients: {ing_str}. Try searching for just one of them.")
         
@@ -636,25 +620,29 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
 
+        # Controllo se l'utente vuole fermarsi
         intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
         if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
             return {"ingredient": None}
         
+        # Estrae gli ingredienti usando le entità
         extracted = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] == "ingredient"]
         
+        # Prova a estrarre manualmente dagli slot se le entità non hanno funzionato (es. "I have chicken and onion")
         if not extracted:
             text = tracker.latest_message.get("text", "").lower()
             for word in ["i have ", "use ", "some ", "only ", "want "]:
                 text = text.replace(word, "")
             extracted = [i.strip() for i in text.replace(" and ", ",").split(",") if len(i.strip()) > 1]
 
+        # Resetta tutto se non riesce ad estrarre nulla
         if not extracted:
             dispatcher.utter_message(text="🛑 I didn't catch anything! Please tell me the INGREDIENTS you want to use.")
-            # SCUDO: Resettiamo tutto il resto se fallisce
             return {"ingredient": None, "time_limit": None, "category": None}
 
         valid_ingredients = []
+        # Controlla ogni ingrediente estratto: se è esatto, ok; altrimenti prova a correggerlo con fuzzy matching
         for item in extracted:
             item_clean = item.lower()
             if item_clean in ALL_UNIQUE_INGREDIENTS:
@@ -666,12 +654,12 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
                         print(f"✅ Validated Ing: '{item_clean}' -> '{best_match}'")
                         valid_ingredients.append(best_match)
 
+        # Se dopo tutto questo non abbiamo ingredienti validi, mostra un messaggio di errore e resetta tutto
         if not valid_ingredients:
             dispatcher.utter_message(text="🛑 I don't recognize those as ingredients. Please give me valid food items (e.g., chicken, eggs).")
-            # SCUDO: Resettiamo tutto il resto se fallisce
             return {"ingredient": None, "time_limit": None, "category": None}
 
-        # SUCCESSO: Salviamo gli ingredienti ma azzeriamo il tempo e la categoria per impedire salti!
+        # SUCCESSO: Salva gli ingredienti e azzera il tempo e la categoria per impedire salti!
         return {"ingredient": valid_ingredients, "time_limit": None, "category": None}
 
     # ==========================================
@@ -681,19 +669,21 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        # Controllo se l'utente vuole fermarsi
         intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
         if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
             return {"time_limit": None}
         
+        # Estrae i numeri dal testo (utilizzando le espressioni regolari)
         numbers = re.findall(r'\d+', text)
         
+        # Se non trova numeri, mostra un messaggio di errore e resetta tempo e categoria
         if not numbers:
             dispatcher.utter_message(text="🛑 I need a number! How many MINUTES do you have?")
-            # SCUDO: Se ha digitato roba a caso (es. "vegan"), impediamo che Rasa lo salvi come categoria
             return {"time_limit": None, "category": None}
             
-        # SUCCESSO: Salviamo il tempo, ma azzeriamo la categoria per forzare il passaggio 3
+        # SUCCESSO: Salva il tempo e azzeriamo la categoria per evitare salti
         return {"time_limit": int(numbers[0]), "category": None}
 
     # ==========================================
@@ -703,23 +693,36 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        # Controllo se l'utente vuole fermarsi
         intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
         if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
             return {"category": None}
                 
+        # Controllo se l'utente vuole saltare questa parte
         if text in ["none", "nothing", "no", "skip", "any", "i don't care"]:
             return {"category": ["none"]}
 
+        # Prova a estrarre le categorie usando le entità
         extracted = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] == "category"]
-        if not extracted:
-            extracted = [c.strip() for c in text.replace(" and ", ",").split(",") if len(c.strip()) > 1]
+        print("Extracted categories:", extracted)
 
+        # Se non riesce ad estrarre nulla, prova a fare un parsing manuale
+        if not extracted:
+            text = tracker.latest_message.get("text", "").lower()
+            print("Raw user input for category:", text)
+            for word in ["i want ", "give me ", " tag", " food", " recipes", " recipe"]:
+                text = text.replace(word, "")
+            extracted = [i.strip() for i in text.replace(" and ", ",").split(",") if len(i.strip()) > 1]
+            print("Manually extracted categories:", extracted)
+
+        # Se ancora non riesce ad estrarre nulla, mostra un messaggio di errore e resetta la categoria
         if not extracted:
             dispatcher.utter_message(text="🛑 I didn't catch anything. Please provide a tag (like 'Vegan') or type 'none'.")
             return {"category": None}
 
         valid_tags = []
+        # Controlla ogni tag estratto: se è esatto, ok; altrimenti prova a correggerlo con fuzzy matching
         for item in extracted:
             item_clean = item.lower()
             if item_clean in ALL_UNIQUE_TAGS:
@@ -731,6 +734,7 @@ class ValidateSvuotaFrigoForm(FormValidationAction):
                         print(f"✅ Validated Tag: '{item_clean}' -> '{best_match}'")
                         valid_tags.append(best_match)
 
+        # Se dopo tutto questo non abbiamo tag validi, mostra un messaggio di errore e resetta la categoria
         if not valid_tags:
             dispatcher.utter_message(text="🛑 I don't recognize those tags. Give me a valid category (like 'Easy', 'Winter') or type 'none'.")
             return {"category": None}
@@ -745,7 +749,7 @@ class ActionSubmitSvuotaFrigo(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # 1. Recuperiamo i dati (già perfetti e validati dalla Form!)
+        # Recupera i dati (già perfetti e validati dalla Form!)
         ingredients = tracker.get_slot("ingredient")
         time_limit = tracker.get_slot("time_limit")
         categories = tracker.get_slot("category")
@@ -756,11 +760,11 @@ class ActionSubmitSvuotaFrigo(Action):
 
         matches = DATASET.copy()
 
-        # 2. FILTRO TEMPO (Lo facciamo per primo perché è il calcolo più veloce)
+        # FILTRO TEMPO (calcolo più veloce)
         if time_limit:
             matches = matches[matches['minutes'] <= int(time_limit)]
 
-        # 3. FILTRO INGREDIENTI (Ricerca Esatta nell'Array)
+        # FILTRO INGREDIENTI (Ricerca Esatta nell'Array)
         if not matches.empty and ingredients:
             def check_ingredients(row_ing_str):
                 try:
@@ -769,20 +773,20 @@ class ActionSubmitSvuotaFrigo(Action):
                     
                     # Controlla che TUTTI gli ingredienti cercati siano nella lista
                     for search_item in ingredients:
-                        # Qui sta la magia: "olive" == "olive" (True), "olive" == "olive oil" (False)
                         if search_item.lower() not in recipe_ings:
                             return False
                     return True
                 except:
                     return False
-                    
+
+            # Applica il filtro ingredienti        
             matches = matches[matches['ingredients'].apply(check_ingredients)]
 
         # 4. FILTRO CATEGORIE / TAGS (Ricerca Esatta nell'Array)
         if not matches.empty and categories and categories != ["none"]:
             def check_tags(row_tag_str):
                 try:
-                    # Stessa logica degli ingredienti per evitare che "vegan" matchi con "non-vegan"
+                    # Stessa logica degli ingredienti
                     recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
                     for cat in categories:
                         if cat.lower() not in recipe_tags:
@@ -790,18 +794,21 @@ class ActionSubmitSvuotaFrigo(Action):
                     return True
                 except:
                     return False
-                    
+
+            # Applica il filtro tags        
             matches = matches[matches['tags'].apply(check_tags)]
 
-        # --- 5. MOSTRA I RISULTATI ---
+        # --- MOSTRA I RISULTATI ---
         ing_display = ", ".join(ingredients) if ingredients else "any ingredients"
         cat_display = "" if not categories or categories == ["none"] else f" and tags ({', '.join(categories)})"
         
         if not matches.empty:
+            # Ordina per qualità (rating e numero di voti)
             matches = matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
             count = len(matches)
             top_matches = matches.head(5)
 
+            # Formattazione del messaggio di successo
             dispatcher.utter_message(text=f"🎉 SUCCESS! I found {count} recipes using **{ing_display}**, under **{time_limit} mins**{cat_display}:")
             
             buttons = []
@@ -813,7 +820,7 @@ class ActionSubmitSvuotaFrigo(Action):
         else:
             dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find any recipe combining **{ing_display}** under **{time_limit} minutes**{cat_display}. The fridge is too empty!")
 
-        # 6. PULIZIA TOTALE (Svuota gli slot per la prossima ricerca)
+        # PULIZIA TOTALE (Svuota gli slot per la prossima ricerca)
         return [SlotSet("ingredient", None), SlotSet("time_limit", None), SlotSet("category", None)]
     
 # =============================================================================
@@ -834,6 +841,7 @@ class ValidateNutritionSearchForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        # Controllo se l'utente vuole fermarsi
         intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
         if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
@@ -842,11 +850,11 @@ class ValidateNutritionSearchForm(FormValidationAction):
         num = self.extract_number(tracker.latest_message.get("text", ""))
         if num is None:
             dispatcher.utter_message(text="🛑 I need a number! Please enter the max CALORIES (kcal).")
-            # Scudo: azzera i successivi
+            # Azzera i successivi
             return {"max_calories": None, "max_carbs": None, "max_fat": None, "max_protein": None}
         return {"max_calories": num, "max_carbs": None, "max_fat": None, "max_protein": None}
 
-    # 2. Carboidrati
+    # 2. Carboidrati (stesso discorso delle calorie)
     def validate_max_carbs(
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
@@ -906,7 +914,7 @@ class ActionSubmitNutritionSearch(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        # Li consideriamo "Target" invece che "Max"
+        # Recupera i target macros (già validati dalla Form!)
         target_cal = tracker.get_slot("max_calories")
         target_carbs = tracker.get_slot("max_carbs")
         target_fat = tracker.get_slot("max_fat")
@@ -930,20 +938,20 @@ class ActionSubmitNutritionSearch(Action):
             abs(matches['protein'] - target_protein) / max(1, target_protein)
         )
 
-        # Ordiniamo in modo CRESCENTE per distanza (il più vicino a 0 vince) 
+        # Ordina in modo CRESCENTE per distanza (il più vicino a 0 vince) 
         # e decrescente per rating (a parità di distanza, vince la più buona)
         matches = matches.sort_values(by=['distance', 'rating_medio'], ascending=[True, False])
         
-        # Prendiamo le 5 ricette che si avvicinano di più all'obiettivo
+        # Prende le 5 ricette che si avvicinano di più all'obiettivo
         top_matches = matches.head(5)
 
         dispatcher.utter_message(text=f"🎯 SUCCESS! I found the recipes that best match your target macros:")
         
         buttons = []
+        # Crea un bottone per ogni ricetta
         for index, row in top_matches.iterrows():
             r_name = row['name'].title()
             
-            # Mostriamo i valori esatti sul bottone così l'utente vede quanto ci abbiamo azzeccato
             c = row['calories']
             carb = row['carbohydrates']
             fat = row['total_fat']
@@ -973,32 +981,43 @@ class ValidateFullMealForm(FormValidationAction):
         self, slot_value: Any, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> Dict[Text, Any]:
         
+        # Controllo se l'utente vuole fermarsi
         intent = tracker.latest_message.get("intent", {}).get("name")
         text = tracker.latest_message.get("text", "").lower()
         if intent == "stop" or text.strip() in ["stop", "exit", "cancel", "close"]:
             return {"meal_tag": None}
-                
-        # Pulizia testo
-        for word in ["i want ", "make it ", "theme ", "diet "]:
-            text = text.replace(word, "")
-            
-        clean_tag = text.strip()
 
-        if not clean_tag:
+        # Prova a estrarre i tag usando le entità
+        extracted_entities = [e["value"] for e in tracker.latest_message.get("entities", []) if e["entity"] in ["category", "meal_tag"]]
+                
+        # Prende il primo tag estratto (se ce n'è almeno uno)
+        extracted_tag = extracted_entities[0].lower() if extracted_entities else None
+
+        # Se non riesce ad estrarre nulla, prova a fare un parsing manuale (es. "I want a Mexican meal")
+        if not extracted_tag:
+            clean_text = text
+            # Aggiunte parole extra (" menu", " food", " an ", " a ") per blindarlo
+            for word in ["i want ", "make it ", "theme ", "diet ", " menu", " food", " an ", " a "]:
+                clean_text = clean_text.replace(word, "")
+            extracted_tag = clean_text.strip()
+            
+        # Se ancora non riesce ad estrarre nulla, mostra un messaggio di errore e resetta il tag
+        if not extracted_tag:
             dispatcher.utter_message(text="🛑 I didn't catch that. Please provide a theme (e.g., 'Mexican').")
             return {"meal_tag": None}
 
-        # Fuzzy Check contro il nostro database di Tag
-        if clean_tag in ALL_UNIQUE_TAGS:
-            return {"meal_tag": clean_tag}
+        # --- VALIDAZIONE E FUZZY MATCHING ---
+        if extracted_tag in ALL_UNIQUE_TAGS:
+            return {"meal_tag": extracted_tag}
         else:
             if ALL_UNIQUE_TAGS:
-                best_match, score = process.extractOne(clean_tag, ALL_UNIQUE_TAGS, scorer=fuzz.ratio)
+                best_match, score = process.extractOne(extracted_tag, ALL_UNIQUE_TAGS, scorer=fuzz.ratio)
                 if score >= 75:
-                    print(f"✅ Validated Meal Tag: '{clean_tag}' -> '{best_match}'")
+                    print(f"✅ Validated Meal Tag: '{extracted_tag}' -> '{best_match}'")
                     return {"meal_tag": best_match}
 
-        dispatcher.utter_message(text=f"🛑 I don't recognize '{clean_tag}'. Give me a valid category (like 'Healthy', 'Winter').")
+        # Se fallisce anche il Fuzzy Match
+        dispatcher.utter_message(text=f"🛑 I don't recognize '{extracted_tag}'. Give me a valid category (like 'Healthy', 'Winter').")
         return {"meal_tag": None}
 
 
@@ -1019,9 +1038,10 @@ class ActionSubmitFullMeal(Action):
             dispatcher.utter_message(text="⚠️ Database Error.")
             return []
 
-        # 1. Filtriamo tutto il database affinché contenga il TAG SCELTO (es. "italian")
+        # 1. Filtra tutto il database affinché contenga il TAG SCELTO
         matches = DATASET.copy()
         
+        # Funzione di controllo del tema (tag) per ogni ricetta
         def check_theme(row_tag_str):
             try:
                 recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
@@ -1029,6 +1049,7 @@ class ActionSubmitFullMeal(Action):
             except:
                 return False
                 
+        # Applica il filtro del tema (tag) al dataset
         theme_matches = matches[matches['tags'].apply(check_theme)]
 
         # 2. Struttura delle 5 Portate
@@ -1041,16 +1062,17 @@ class ActionSubmitFullMeal(Action):
             ("🍰 Dessert", ["desserts"])
         ]
 
+        # Formatta il messaggio iniziale del menu
         msg = f"🍽️ **The Ultimate {meal_tag.title()} Menu** 🍽️\n\n"
         buttons = []
 
-        # 3. Cerchiamo la ricetta migliore per ogni portata
+        # 3. Cerca la ricetta migliore per ogni portata
         for course_name, valid_course_tags in courses:
             
+            # Funzione di controllo per verificare se una ricetta appartiene alla portata (controlla se ha ALMENO UNO dei tag validi)
             def check_course(row_tag_str):
                 try:
                     recipe_tags = [x.lower().strip() for x in ast.literal_eval(row_tag_str)]
-                    # Controlla se ALMENO UNO dei tag della portata è presente (es. pasta OPPURE rice)
                     return any(t in recipe_tags for t in valid_course_tags)
                 except:
                     return False
@@ -1058,6 +1080,7 @@ class ActionSubmitFullMeal(Action):
             # Filtra il database già scremato per il tema
             course_matches = theme_matches[theme_matches['tags'].apply(check_course)]
             
+            # Se trova qualcosa...
             if not course_matches.empty:
                 # Ordina per trovare la migliore in assoluto
                 course_matches = course_matches.sort_values(by=['rating_medio', 'num_voti'], ascending=[False, False])
@@ -1071,13 +1094,13 @@ class ActionSubmitFullMeal(Action):
                 
                 msg += f"**{course_name}:** {r_name} ({r_rate}⭐)\n"
                 
-                # Creo un bottone rapido per permettere all'utente di aprire subito quella ricetta
+                # Crea un bottone rapido per permettere all'utente di aprire subito quella ricetta
                 buttons.append({"title": f"See {course_name.split()[1]}", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'})
             else:
                 # Se non c'è nessuna ricetta per quella portata con quel tema
                 msg += f"**{course_name}:** -\n"
 
-        # 4. Inviamo il menu!
+        # 4. Invia il menu all'utente
         dispatcher.utter_message(text=msg)
         if buttons:
             dispatcher.utter_message(text="Tap a button below to get the full recipe for a specific course:", buttons=buttons)
@@ -1102,7 +1125,7 @@ class ActionRandomRecipe(Action):
 
         r_name = random_recipe['name'].title()
         r_rate = random_recipe['rating_medio']
-        r_id = random_recipe.name  # L'indice è l'ID della ricetta
+        r_id = random_recipe.name # L'indice del DataFrame è l'ID della ricetta
 
         msg = f"🎲 **Random Recipe:** {r_name} ({r_rate}⭐)\n\n"
         buttons = [{"title": "See Full Recipe", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'}]

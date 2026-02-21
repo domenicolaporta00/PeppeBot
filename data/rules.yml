@@ -140,6 +140,16 @@ rules:
   - intent: random_recipe
   - action: action_random_recipe
 
+- rule: Rispondi con l'easter egg del bot inutile
+  steps:
+  - intent: easter_egg_bot_inutile
+  - action: utter_easter_egg_bot_inutile
+
+- rule: Rispondi con l'easter egg della pizza con l'ananas
+  steps:
+  - intent: easter_egg_ananas_pizza
+  - action: utter_easter_egg_ananas_pizza
+
 - rule: Say goodbye anytime the user says goodbye
   steps:
   - intent: goodbye

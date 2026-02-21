@@ -20,6 +20,8 @@ intents:
   - trigger_full_meal
   - random_recipe
   - stop
+  - easter_egg_bot_inutile
+  - easter_egg_ananas_pizza
 
 entities:
   - recipe_name
@@ -312,6 +314,21 @@ responses:
 
   utter_form_stopped:
     - text: "🛑 No problem, chef! I've cancelled the current request. What would you like to do next?"
+
+  utter_easter_egg_bot_inutile:
+    - text: |
+        Mi dispiace davvero tanto di non essere riuscito a soddisfare le tue richieste! 😔
+        Devi sapere che sono ancora un bot in fase di crescita e i miei sviluppatori sono ancora un po' 
+        alle prime armi con il codice... ce la stanno mettendo tutta, promesso! 😅
+        
+        Purtroppo al momento non c'è nessun operatore umano con cui posso farti parlare.
+  
+  utter_easter_egg_ananas_pizza:
+    - text: |
+        Mamma mia! 🤌 Did you really just ask an Italian chef about pineapple on pizza? 
+        That is not a recipe, it is a culinary crime! 
+        🚨 My system is crashing just thinking about it... 
+        Please, let's pretend you never asked this.
   
   utter_fallback:
   - text: |
