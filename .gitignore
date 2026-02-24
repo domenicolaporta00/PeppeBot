@@ -20,3 +20,6 @@ env/
 
 # --- FILE MIEI ---
 utils/
+
+# CREDENTIALS
+credentials.yml
