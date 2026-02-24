@@ -2,29 +2,87 @@ version: "3.1"
 
 stories:
 
-# - story: happy path
-#   steps:
-#   - intent: greet
-#   - action: utter_greet
-#   - intent: mood_great
-#   - action: utter_happy
+  - story: general_story_1
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: search_by_name
+    - action: action_search_by_name
+    - intent: ask_nutrition
+    - action: action_ask_nutrition
+    - intent: goodbye
+    - action: utter_goodbye
 
-# - story: sad path 1
-#   steps:
-#   - intent: greet
-#   - action: utter_greet
-#   - intent: mood_unhappy
-#   - action: utter_cheer_up
-#   - action: utter_did_that_help
-#   - intent: affirm
-#   - action: utter_happy
+  - story: general_story_2
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: search_by_category
+    - action: action_search_by_category
+    - intent: select_recipe
+    - action: action_select_recipe_by_id
+    - intent: goodbye
+    - action: utter_goodbye
 
-# - story: sad path 2
-#   steps:
-#   - intent: greet
-#   - action: utter_greet
-#   - intent: mood_unhappy
-#   - action: utter_cheer_up
-#   - action: utter_did_that_help
-#   - intent: deny
-#   - action: utter_goodbye
+  - story: general_story_3
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_top_rated
+    - action: action_show_top_rated
+    - intent: ask_cooking_time
+    - action: action_ask_cooking_time
+    - intent: goodbye
+    - action: utter_goodbye
+
+  - story: general_story_4
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: help
+    - action: utter_help
+    - intent: search_by_ingredient
+    - action: action_search_by_ingredient
+    - intent: goodbye
+    - action: utter_goodbye
+
+  - story: general_story_with_fallback
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_top_rated
+    - action: action_show_top_rated
+    - intent: search_by_name
+    - action: action_search_by_name
+    - intent: nlu_fallback
+    - action: utter_fallback
+    - intent: goodbye
+    - action: utter_goodbye
+
+  - story: general_story_extended
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: search_by_category
+    - action: action_search_by_category
+    - intent: select_recipe
+    - action: action_select_recipe_by_id
+    - intent: ask_cooking_time
+    - action: action_ask_cooking_time
+    - intent: ask_nutrition
+    - action: action_ask_nutrition
+    - intent: goodbye
+    - action: utter_goodbye
+
+  - story: exploratory_story
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_identity
+    - action: utter_identity
+    - intent: ask_greenmarket_story
+    - action: utter_greenmarket_story
+    - intent: random_recipe
+    - action: action_random_recipe
+    - intent: goodbye
+    - action: utter_goodbye
