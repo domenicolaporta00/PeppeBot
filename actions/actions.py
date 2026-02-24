@@ -153,28 +153,26 @@ class ActionSearchByName(Action):
             
             # Se ce n'è più di una (es. Bread, Banana Bread), mostra i bottoni
             else:
-                dispatcher.utter_message(text=f"🔍 I found {count} recipes containing **'{recipe_name}'**. Please select one:")
+                testo_risposta = f"🔍 I found {count} recipes containing **'{recipe_name}'**. Here are the top {len(top_matches)}:"
                 
                 buttons = []
                 for index, row in top_matches.iterrows():
                     r_name = row['name'].title()
                     r_rate = row['rating_medio']
                     
-                    # Titolo del bottone: "Banana Bread (4.5⭐)"
-                    title = f"{r_name} ({r_rate}⭐)"
-                    
-                    # Passa l'ID, non il nome, per evitare ambiguità
+                    # Aggiungiamo un'icona per allungare leggermente il testo e forzare Telegram a metterli in colonna
+                    title = f"👨‍🍳 {r_name} ({r_rate}⭐)"
                     payload = f'/select_recipe{{"recipe_id":"{index}"}}'
                     
                     buttons.append({"title": title, "payload": payload})
                 
-                dispatcher.utter_message(buttons=buttons)
+                # Usiamo il metodo nativo di Rasa: è l'unico blindato al 100%
+                dispatcher.utter_message(text=testo_risposta, buttons=buttons)
                 return []
         
         else:
             dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find anything matching **{recipe_name}**.")
             return [SlotSet('recipe_name', None)]
-
 
 # --- AZIONE 2: MOSTRA DETTAGLI DA ID (Blindata) ---
 class ActionSelectRecipeById(Action):
@@ -293,17 +291,21 @@ class ActionSearchByCategory(Action):
             count = len(matches)
             top_matches = matches.head(5)
 
-            dispatcher.utter_message(text=f"🔍 I found {count} recipes matching {tags_str}! Here are the best ones:")
+            # Salviamo il testo in una variabile invece di inviarlo da solo
+            testo_risposta = f"🔍 I found {count} recipes matching {tags_str}! Here are the best ones:"
             
             buttons = []
             for index, row in top_matches.iterrows():
                 r_name = row['name'].title()
                 r_rate = row['rating_medio']
-                title = f"{r_name} ({r_rate}⭐)"
+                
+                # Aggiungiamo l'icona del cuoco per allungare il testo del bottone (layout verticale Telegram)
+                title = f"👨‍🍳 {r_name} ({r_rate}⭐)"
                 payload = f'/select_recipe{{"recipe_id":"{index}"}}'
                 buttons.append({"title": title, "payload": payload})
             
-            dispatcher.utter_message(buttons=buttons)
+            # Invia testo e bottoni in un unico pacchetto
+            dispatcher.utter_message(text=testo_risposta, buttons=buttons)
         
         else:
             dispatcher.utter_message(text=f"😔 No recipes found matching ALL these criteria: {tags_str}. Try searching for just one of them.")
@@ -336,14 +338,17 @@ class ActionAskNutrition(Action):
                 r_index = int(recipe_id)
                 # Controlliamo se l'indice è valido
                 if 0 <= r_index < len(DATASET):
-                    # Recupera la riga dall'ID
-                    row = DATASET.iloc[r_index]
+                    # Recupera la riga dall'ID usando .loc (o .iloc se usi indici posizionali, ma .loc è più sicuro per gli ID)
+                    row = DATASET.loc[r_index]
                     print(f"✅ Trovata ricetta via ID: {r_index} -> {row['name']}")
                 else:
                     dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
                     return [SlotSet("recipe_id", None)]
             except ValueError:
                 pass
+            except KeyError:
+                dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
+                return [SlotSet("recipe_id", None)]
 
         # --- 2. RICERCA PER NOME ---
         if row is None and recipe_name:
@@ -369,20 +374,20 @@ class ActionAskNutrition(Action):
                 
                 # Se ci sono ambiguità (es. "Bread" vs "Banana Bread"), mostra i bottoni
                 if len(unique_names) > 1:
-                    dispatcher.utter_message(text=f"🔍 I found multiple recipes for **'{recipe_name}'**. Select the exact one:")
+                    testo_risposta = f"🔍 I found multiple recipes for **'{recipe_name}'**. Select the exact one to see its nutritional info:"
                     
                     buttons = []
                     # Prendiamo i primi 5 risultati diversi
                     for index, r in matches.head(5).iterrows():
                         r_name = r['name'].title()
                         
-                        nutr_payload = f', "nutrient": "{requested_nutrient}"' if requested_nutrient else ''
+                        # Passiamo SOLO l'ID. Rasa si ricorderà da solo il nutriente dalla memoria!
+                        payload = f'/ask_nutrition{{"recipe_id":"{index}"}}'
                         
-                        payload = f'/ask_nutrition{{"recipe_id":"{index}"{nutr_payload}}}'
-                        
-                        buttons.append({"title": r_name, "payload": payload})
+                        buttons.append({"title": f"🥗 {r_name}", "payload": payload})
                     
-                    dispatcher.utter_message(buttons=buttons)
+                    # Invia il messaggio combinato (Telegram safe)
+                    dispatcher.utter_message(text=testo_risposta, buttons=buttons)
                     return []
                 
                 else:
@@ -457,12 +462,16 @@ class ActionAskCookingTime(Action):
             try:
                 r_index = int(recipe_id)
                 if 0 <= r_index < len(DATASET):
-                    row = DATASET.iloc[r_index]
+                    # Usiamo .loc perché r_index è l'ID reale (l'indice del dataframe)
+                    row = DATASET.loc[r_index]
                 else:
                     dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
                     return [SlotSet("recipe_id", None)]
             except ValueError:
                 pass
+            except KeyError:
+                dispatcher.utter_message(text="⚠️ Invalid Recipe ID.")
+                return [SlotSet("recipe_id", None)]
 
         # --- 2. RICERCA PER NOME ---
         if row is None and recipe_name:
@@ -488,16 +497,20 @@ class ActionAskCookingTime(Action):
                 
                 # AMBIGUITÀ -> BOTTONI CON ID
                 if len(unique_names) > 1:
-                    dispatcher.utter_message(text=f"⏱️ I found multiple recipes for **'{recipe_name}'**. Which one?")
+                    # Salviamo il testo in una variabile
+                    testo_risposta = f"⏱️ I found multiple recipes for **'{recipe_name}'**. Which one?"
                     
                     buttons = []
                     for index, r in matches.head(5).iterrows():
                         r_name = r['name'].title()
                         # Payload punta a questa azione ma con l'ID
                         payload = f'/ask_cooking_time{{"recipe_id":"{index}"}}'
-                        buttons.append({"title": r_name, "payload": payload})
+                        
+                        # Aggiungiamo un'icona per favorire il layout verticale su Telegram
+                        buttons.append({"title": f"⏳ {r_name}", "payload": payload})
                     
-                    dispatcher.utter_message(buttons=buttons)
+                    # Inviamo il pacchetto completo testo + bottoni
+                    dispatcher.utter_message(text=testo_risposta, buttons=buttons)
                     return []
                 
                 else:
@@ -591,17 +604,22 @@ class ActionSearchByIngredient(Action):
             count = len(matches)
             top_matches = matches.head(5)
 
-            dispatcher.utter_message(text=f"🍳 I found {count} recipes using {ing_str}! Here are the best ones:")
+            # Salviamo il testo in una variabile
+            testo_risposta = f"🍳 I found {count} recipes using {ing_str}! Here are the best ones:"
             
             buttons = []
             for index, row in top_matches.iterrows():
                 r_name = row['name'].title()
                 r_rate = row['rating_medio']
-                title = f"{r_name} ({r_rate}⭐)"
+                
+                # Aggiungiamo l'icona per allungare il testo e forzare il layout verticale su Telegram
+                title = f"🍳 {r_name} ({r_rate}⭐)"
                 payload = f'/select_recipe{{"recipe_id":"{index}"}}'
                 buttons.append({"title": title, "payload": payload})
             
-            dispatcher.utter_message(buttons=buttons)
+            # Invia testo e bottoni insieme!
+            dispatcher.utter_message(text=testo_risposta, buttons=buttons)
+            
         # Altrimenti, se non trova nulla, mostra un messaggio di errore
         else:
             dispatcher.utter_message(text=f"😔 No recipes found containing ALL these ingredients: {ing_str}. Try searching for just one of them.")
@@ -808,15 +826,21 @@ class ActionSubmitSvuotaFrigo(Action):
             count = len(matches)
             top_matches = matches.head(5)
 
-            # Formattazione del messaggio di successo
-            dispatcher.utter_message(text=f"🎉 SUCCESS! I found {count} recipes using **{ing_display}**, under **{time_limit} mins**{cat_display}:")
+            # Salviamo il testo in una variabile
+            testo_risposta = f"🎉 SUCCESS! I found {count} recipes using **{ing_display}**, under **{time_limit} mins**{cat_display}:"
             
             buttons = []
             for index, row in top_matches.iterrows():
                 r_name = row['name'].title()
-                buttons.append({"title": f"{r_name} ({row['minutes']}m)", "payload": f'/select_recipe{{"recipe_id":"{index}"}}'})
+                
+                # Aggiungiamo icona per forzare l'incolonnamento su Telegram
+                title = f"🍽️ {r_name} ({row['minutes']}m)"
+                payload = f'/select_recipe{{"recipe_id":"{index}"}}'
+                
+                buttons.append({"title": title, "payload": payload})
             
-            dispatcher.utter_message(buttons=buttons)
+            # Invio combinato di testo e bottoni!
+            dispatcher.utter_message(text=testo_risposta, buttons=buttons)
         else:
             dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find any recipe combining **{ing_display}** under **{time_limit} minutes**{cat_display}. The fridge is too empty!")
 
@@ -945,7 +969,8 @@ class ActionSubmitNutritionSearch(Action):
         # Prende le 5 ricette che si avvicinano di più all'obiettivo
         top_matches = matches.head(5)
 
-        dispatcher.utter_message(text=f"🎯 SUCCESS! I found the recipes that best match your target macros:")
+        # Salviamo il testo in una variabile
+        testo_risposta = f"🎯 SUCCESS! I found the recipes that best match your target macros:"
         
         buttons = []
         # Crea un bottone per ogni ricetta
@@ -957,10 +982,12 @@ class ActionSubmitNutritionSearch(Action):
             fat = row['total_fat']
             pro = row['protein']
             
-            label = f"{r_name} ({c}kcal | C:{carb}% | F:{fat}% | P:{pro}%)"
+            # Aggiunta icona per layout verticale Telegram
+            label = f"🥗 {r_name} ({c}kcal | C:{carb}% | F:{fat}% | P:{pro}%)"
             buttons.append({"title": label, "payload": f'/select_recipe{{"recipe_id":"{index}"}}'})
         
-        dispatcher.utter_message(buttons=buttons)
+        # Invio combinato (Testo + Bottoni) in stile Telegram!
+        dispatcher.utter_message(text=testo_risposta, buttons=buttons)
 
         # Pulizia slot
         return [

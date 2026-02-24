@@ -2,6 +2,12 @@ version: "3.1"
 
 stories:
 
+  - story: Benvenuto su Telegram
+    steps:
+    - intent: start
+    - action: utter_greet
+    - action: utter_help
+
   - story: general_story_1
     steps:
     - intent: greet
