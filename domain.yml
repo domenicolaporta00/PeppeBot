@@ -201,45 +201,45 @@ responses:
     - text: |
         I am PeppeBot 👨‍🍳, your cooking assistant. Here is exactly what I can do:
 
-        1. *Empty Fridge Search* 🧊
+        1. Empty Fridge Search 🧊
            I find the ideal recipe based on your available ingredients, time limit, and diet.
-           _Try saying:_ "What can I cook today?" or "Empty fridge"
+           Try saying: "What can I cook today?" or "Empty fridge"
 
-        2. *Fitness & Macros Search* 🥗
+        2. Fitness & Macros Search 🥗
            I filter the best recipes based on your target calories, carbs, fats, and proteins.
-           _Try saying:_ "Suggest me a recipe by macros" or "can you recommend a recipe based on nutritional values?"
+           Try saying: "Suggest me a recipe by macros" or "can you recommend a recipe based on nutritional values?"
 
-        3. *Full Course Menu Planner* 🍽️
+        3. Full Course Menu Planner 🍽️
            I build a complete 5-course menu (from Appetizer to Dessert) based on a specific theme.
-           _Try saying:_ "I want a full course meal" or "Suggest a full menu"
+           Try saying: "I want a full course meal" or "Suggest a full menu"
 
-        4. *Search by Name* 🔎
+        4. Search by Name 🔎
            I find a specific dish by its name.
-           _Try saying:_ "Search for Carbonara"
+           Try saying: "Search for Carbonara"
 
-        5. *Search by Category* 🍰
+        5. Search by Category 🍰
            I suggest recipes for a specific category (e.g., dessert, vegan).
-           _Try saying:_ "I want a dessert" or "Show me vegan recipes"
+           Try saying: "I want a dessert" or "Show me vegan recipes"
 
-        6. *Top Rated Recipes* ⭐
+        6. Top Rated Recipes ⭐
            I show recipes with the highest user ratings.
-           _Try saying:_ "Show me the best recipes"
+           Try saying: "Show me the best recipes"
 
-        7. *Nutritional Info* 📊
+        7. Nutritional Info 📊
            I provide detailed nutrients and calories starting from the name of a recipe.
-           _Try saying:_ "Show me the calories for Carbonara", "Carbs in Pizza" or "What are the macros for Lasagna?"
+           Try saying: "Show me the calories for Carbonara", "Carbs in Pizza" or "What are the macros for Lasagna?"
 
-        8. *Cooking Time* ⏱️
+        8. Cooking Time ⏱️
            I tell you exactly how many minutes it takes to prepare a specific dish.
-           _Try saying:_ "How long does it take to cook Tiramisu?"
+           Try saying: "How long does it take to cook Tiramisu?"
 
-        9. *Search by Ingredients* 🥕
+        9. Search by Ingredients 🥕
            I suggest recipes that contain the specific ingredients you want to use.
-           _Try saying:_ "Recipes with chicken and mushrooms"
+           Try saying: "Recipes with chicken and mushrooms"
 
-        10. *Random Recipe* 🎲
+        10. Random Recipe 🎲
             I can surprise you with a random dish if you don't know what to cook.
-            _Try saying:_ "Give me a random dish" or "Surprise me with a recipe"
+            Try saying: "Give me a random dish" or "Surprise me with a recipe"
 
         What would you like to cook today? Choose an option below to get started! 👇
       buttons:
@@ -254,17 +254,17 @@ responses:
   - text: |
       I am a bot 🤖, not a human!
       
-      I was developed in *February 2026* by *Domenico, Lorenzo, and Yassir*.
+      I was developed in February 2026 by Domenico, Lorenzo, and Yassir.
       
-      They named me *PeppeBot* in honor of Grandfather Peppe, the original founder of GreenMarket! 🍅
+      They named me PeppeBot in honor of Grandfather Peppe, the original founder of GreenMarket! 🍅
 
   utter_greenmarket_story:
   - text: |
       Here is our story! 📖
 
-      GreenMarket started in *1965 in Ancona*. It was founded by *Giuseppe 'Peppe' Izzi*, a farmer from Montenero di Bisaccia who moved to the city. He loved fresh and sustainable food! 🍅
+      GreenMarket started in 1965 in Ancona. It was founded by Giuseppe 'Peppe' Izzi, a farmer from Montenero di Bisaccia who moved to the city. He loved fresh and sustainable food! 🍅
 
-      Today, the shop is managed by his grandson *Giuseppe* and his business partner *Domenico La Porta*.
+      Today, the shop is managed by his grandson Giuseppe and his business partner Domenico La Porta.
 
       They created this App to bring quality products directly to your home, offering exclusive discounts and custom shopping lists. 🛒
 
@@ -275,7 +275,7 @@ responses:
     - text: "⏱️ Got it. How many minutes do you have to cook? (e.g., 30)"
   
   utter_ask_category:
-    - text: "🏷️ Finally, do you want a specific category or diet? (e.g., Vegan, Spicy, Dinner. If none, just type 'none')"
+    - text: "🏷️ Finally, do you want a specific category or diet? (e.g., Vegan, Spicy. If none, just type 'none')"
   
   utter_ask_max_calories:
     - text: "🥗 Let's find your perfect meal! ABOUT HOW MANY CALORIES are you aiming for? (e.g., 500)"
@@ -336,7 +336,7 @@ responses:
       I'm sorry, I didn't understand that. 😕
       Could you please rephrase?
       
-      If you are stuck, type **"help"** to see what I can do!
+      If you are stuck, type "help" to see what I can do!
 
 session_config:
   session_expiration_time: 60

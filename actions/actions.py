@@ -88,7 +88,7 @@ class ActionShowTopRated(Action):
         ).head(5)
 
         # 2. Costruisce il messaggio di risposta
-        message = "⭐ **Here are the Top 5 Recipes from GreenMarket:**\n\n"
+        message = "⭐ Here are the Top 5 Recipes from GreenMarket:\n\n"
         
         for index, row in top_recipes.iterrows():
             name = row['name'].title() # Mette le maiuscole a tutte le parole
@@ -97,7 +97,7 @@ class ActionShowTopRated(Action):
             minutes = int(row['minutes'])
             
             # Aggiunge una riga per ogni ricetta
-            message += f"🏆 **{name}**\n"
+            message += f"🏆 {name}\n"
             message += f"   Rating: {rating}/5 ({votes} votes) | ⏱️ {minutes} min\n\n"
 
         # 3. Invia il messaggio all'utente
@@ -153,7 +153,7 @@ class ActionSearchByName(Action):
             
             # Se ce n'è più di una (es. Bread, Banana Bread), mostra i bottoni
             else:
-                testo_risposta = f"🔍 I found {count} recipes containing **'{recipe_name}'**. Here are the top {len(top_matches)}:"
+                testo_risposta = f"🔍 I found {count} recipes containing '{recipe_name}'. Here are the top {len(top_matches)}:"
                 
                 buttons = []
                 for index, row in top_matches.iterrows():
@@ -171,7 +171,7 @@ class ActionSearchByName(Action):
                 return []
         
         else:
-            dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find anything matching **{recipe_name}**.")
+            dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find anything matching {recipe_name}.")
             return [SlotSet('recipe_name', None)]
 
 # --- AZIONE 2: MOSTRA DETTAGLI DA ID (Blindata) ---
@@ -206,12 +206,12 @@ class ActionSelectRecipeById(Action):
                 r_steps = str(row['steps']).replace('[','').replace(']','').replace("'", "").replace('"', "")
 
                 message = (
-                    f"🍽️ **{r_name}**\n"
+                    f"🍽️ {r_name}\n"
                     f"⭐ Rating: {r_rate}/5 ({r_votes} votes)\n"
                     f"⏱️ Cooking Time: {r_time} min\n"
                     f"🏷️ Tags: {r_tags}\n\n"
-                    f"🥦 **Ingredients:**\n{r_ingr}\n\n"
-                    f"👨‍🍳 **Steps:**\n{r_steps}"
+                    f"🥦 Ingredients:\n{r_ingr}\n\n"
+                    f"👨‍🍳 Steps:\n{r_steps}"
                 )
                 dispatcher.utter_message(text=message)
             else:
@@ -283,7 +283,7 @@ class ActionSearchByCategory(Action):
                 break
 
         # --- RISULTATI ---
-        tags_str = " + ".join([f"**{t}**" for t in found_tags])
+        tags_str = " + ".join([f"{t}" for t in found_tags])
         
         # Se trova qualcosa, mostra i top 5 risultati ordinati per rating
         if not matches.empty:
@@ -363,7 +363,7 @@ class ActionAskNutrition(Action):
                     all_names = DATASET['name'].tolist()
                     best_match, score = process.extractOne(search_term, all_names)
                     if score >= 60:
-                        dispatcher.utter_message(text=f"Did you mean **{best_match}**? Checking... 🕵️")
+                        dispatcher.utter_message(text=f"Did you mean {best_match}? Checking... 🕵️")
                         matches = DATASET[DATASET['name'].str.contains(best_match, case=False, na=False, regex=False)]
                 except:
                     pass
@@ -374,7 +374,7 @@ class ActionAskNutrition(Action):
                 
                 # Se ci sono ambiguità (es. "Bread" vs "Banana Bread"), mostra i bottoni
                 if len(unique_names) > 1:
-                    testo_risposta = f"🔍 I found multiple recipes for **'{recipe_name}'**. Select the exact one to see its nutritional info:"
+                    testo_risposta = f"🔍 I found multiple recipes for '{recipe_name}'. Select the exact one to see its nutritional info:"
                     
                     buttons = []
                     # Prendiamo i primi 5 risultati diversi
@@ -394,7 +394,7 @@ class ActionAskNutrition(Action):
                     # Match unico
                     row = matches.iloc[0]
             else:
-                dispatcher.utter_message(text=f"😔 I couldn't find nutritional info for **{recipe_name}**.")
+                dispatcher.utter_message(text=f"😔 I couldn't find nutritional info for {recipe_name}.")
                 return [SlotSet("recipe_name", None)]
 
         # --- 3. MOSTRA RISULTATI (Se esiste 'row') ---
@@ -418,21 +418,21 @@ class ActionAskNutrition(Action):
                 if col_name in row:
                     value = row[col_name]
                     unit = "kcal" if col_name == "calories" else "% PDV"
-                    dispatcher.utter_message(text=f"📊 **{r_name}** contains **{value} {unit}** of {requested_nutrient}.")
+                    dispatcher.utter_message(text=f"📊 {r_name} contains {value} {unit} of {requested_nutrient}.")
                 else:
                     dispatcher.utter_message(text=f"⚠️ Info about '{requested_nutrient}' not available.")
             # Altrimenti mostra tutto
             else:
                 msg = (
-                    f"📊 **Nutritional Info for {r_name}**:\n\n"
-                    f"🔥 **Calories:** {row['calories']} kcal\n"
-                    f"🥓 **Total Fat:** {row['total_fat']}% PDV\n"
-                    f"🍬 **Sugar:** {row['sugar']}% PDV\n"
-                    f"🧂 **Sodium:** {row['sodium']}% PDV\n"
-                    f"🥩 **Protein:** {row['protein']}% PDV\n"
-                    f"🧈 **Saturated Fat:** {row['saturated_fat']}% PDV\n"
-                    f"🍞 **Carbohydrates:** {row['carbohydrates']}% PDV\n\n"
-                    f"*(PDV = Percent Daily Value)*"
+                    f"📊 Nutritional Info for {r_name}:\n\n"
+                    f"🔥 Calories: {row['calories']} kcal\n"
+                    f"🥓 Total Fat: {row['total_fat']}% PDV\n"
+                    f"🍬 Sugar: {row['sugar']}% PDV\n"
+                    f"🧂 Sodium: {row['sodium']}% PDV\n"
+                    f"🥩 Protein: {row['protein']}% PDV\n"
+                    f"🧈 Saturated Fat: {row['saturated_fat']}% PDV\n"
+                    f"🍞 Carbohydrates: {row['carbohydrates']}% PDV\n\n"
+                    f"(PDV = Percent Daily Value)"
                 )
                 dispatcher.utter_message(text=msg)
 
@@ -486,7 +486,7 @@ class ActionAskCookingTime(Action):
                     all_names = DATASET['name'].tolist()
                     best_match, score = process.extractOne(search_term, all_names)
                     if score >= 60:
-                        dispatcher.utter_message(text=f"Did you mean **{best_match}**? Checking time... ⏱️")
+                        dispatcher.utter_message(text=f"Did you mean {best_match}? Checking time... ⏱️")
                         matches = DATASET[DATASET['name'].str.contains(best_match, case=False, na=False, regex=False)]
                 except:
                     pass
@@ -498,7 +498,7 @@ class ActionAskCookingTime(Action):
                 # AMBIGUITÀ -> BOTTONI CON ID
                 if len(unique_names) > 1:
                     # Salviamo il testo in una variabile
-                    testo_risposta = f"⏱️ I found multiple recipes for **'{recipe_name}'**. Which one?"
+                    testo_risposta = f"⏱️ I found multiple recipes for '{recipe_name}'. Which one?"
                     
                     buttons = []
                     for index, r in matches.head(5).iterrows():
@@ -517,7 +517,7 @@ class ActionAskCookingTime(Action):
                     # Match unico
                     row = matches.iloc[0]
             else:
-                dispatcher.utter_message(text=f"😔 I couldn't find cooking times for **{recipe_name}**.")
+                dispatcher.utter_message(text=f"😔 I couldn't find cooking times for {recipe_name}.")
                 return [SlotSet("recipe_name", None)]
 
         # --- 3. MOSTRA RISULTATO ---
@@ -533,7 +533,7 @@ class ActionAskCookingTime(Action):
             else:
                 time_str = f"{r_minutes} minutes"
 
-            dispatcher.utter_message(text=f"⏱️ **{r_name}** takes about **{time_str}** to make.")
+            dispatcher.utter_message(text=f"⏱️ {r_name} takes about {time_str} to make.")
 
         # Reset slot
         return [SlotSet("recipe_name", None), SlotSet("recipe_id", None)]
@@ -596,7 +596,7 @@ class ActionSearchByIngredient(Action):
                 break
 
         # --- RISULTATI ---
-        ing_str = " + ".join([f"**{i}**" for i in found_ingredients])
+        ing_str = " + ".join([f"{i}" for i in found_ingredients])
         
         # Se ha trovato qualcosa, mostra i top 5 risultati ordinati per rating
         if not matches.empty:
@@ -827,7 +827,7 @@ class ActionSubmitSvuotaFrigo(Action):
             top_matches = matches.head(5)
 
             # Salviamo il testo in una variabile
-            testo_risposta = f"🎉 SUCCESS! I found {count} recipes using **{ing_display}**, under **{time_limit} mins**{cat_display}:"
+            testo_risposta = f"🎉 SUCCESS! I found {count} recipes using {ing_display}, under {time_limit} mins{cat_display}:"
             
             buttons = []
             for index, row in top_matches.iterrows():
@@ -842,7 +842,7 @@ class ActionSubmitSvuotaFrigo(Action):
             # Invio combinato di testo e bottoni!
             dispatcher.utter_message(text=testo_risposta, buttons=buttons)
         else:
-            dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find any recipe combining **{ing_display}** under **{time_limit} minutes**{cat_display}. The fridge is too empty!")
+            dispatcher.utter_message(text=f"😔 I'm sorry, I couldn't find any recipe combining {ing_display} under {time_limit} minutes{cat_display}. The fridge is too empty!")
 
         # PULIZIA TOTALE (Svuota gli slot per la prossima ricerca)
         return [SlotSet("ingredient", None), SlotSet("time_limit", None), SlotSet("category", None)]
@@ -1090,7 +1090,7 @@ class ActionSubmitFullMeal(Action):
         ]
 
         # Formatta il messaggio iniziale del menu
-        msg = f"🍽️ **The Ultimate {meal_tag.title()} Menu** 🍽️\n\n"
+        msg = f"🍽️ The Ultimate {meal_tag.title()} Menu 🍽️\n\n"
         buttons = []
 
         # 3. Cerca la ricetta migliore per ogni portata
@@ -1119,13 +1119,13 @@ class ActionSubmitFullMeal(Action):
                 # Prendo l'ID (l'indice) per creare il bottone
                 r_id = course_matches.index[0]
                 
-                msg += f"**{course_name}:** {r_name} ({r_rate}⭐)\n"
+                msg += f"{course_name}: {r_name} ({r_rate}⭐)\n"
                 
                 # Crea un bottone rapido per permettere all'utente di aprire subito quella ricetta
                 buttons.append({"title": f"See {course_name.split()[1]}", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'})
             else:
                 # Se non c'è nessuna ricetta per quella portata con quel tema
-                msg += f"**{course_name}:** -\n"
+                msg += f"{course_name}: -\n"
 
         # 4. Invia il menu all'utente
         dispatcher.utter_message(text=msg)
@@ -1154,7 +1154,7 @@ class ActionRandomRecipe(Action):
         r_rate = random_recipe['rating_medio']
         r_id = random_recipe.name # L'indice del DataFrame è l'ID della ricetta
 
-        msg = f"🎲 **Random Recipe:** {r_name} ({r_rate}⭐)\n\n"
+        msg = f"🎲 Random Recipe: {r_name} ({r_rate}⭐)\n\n"
         buttons = [{"title": "See Full Recipe", "payload": f'/select_recipe{{"recipe_id":"{r_id}"}}'}]
 
         dispatcher.utter_message(text=msg, buttons=buttons)
